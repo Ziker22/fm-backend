@@ -1,0 +1,23 @@
+[project]
+name = "family-map"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Juraj Slavicek",email = "juraj.slavicek@gmail.com"}
+]
+requires-python = ">=3.12,<4.0"
+dependencies = [
+    "strawberry-graphql (>=0.269.0,<0.270.0)",
+    "strawberry-graphql-django (>=0.59.1,<0.60.0)",
+    "python-dotenv (>=1.1.0,<2.0.0)",
+    "django (>=5.2.1,<6.0.0)",
+    "psycopg[binary] (>=3.2.9,<4.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+package-mode = false

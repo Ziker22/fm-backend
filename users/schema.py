@@ -5,8 +5,22 @@ from django.contrib.auth.models import User
 from strawberry.django import auth
 from strawberry import auto
 from strawberry.types import Info
+from strawberry.permission import BasePermission
 
-from users.models import UserProfile
+from users.models import UserProfile, UserRole
+
+
+class IsAdmin(BasePermission):
+    """
+    Permission class that only allows users with admin role to access the field.
+    """
+    message = "User is not authorized to access this resource"
+
+    def has_permission(self, source, info: Info, **kwargs) -> bool:
+        user = info.context.request.user
+        if not user.is_authenticated:
+            return False
+        return hasattr(user, 'profile') and user.profile.is_admin
 
 
 # Define User type
@@ -29,6 +43,7 @@ class UserProfileType:
     bio: auto
     phone_number: auto
     default_location: auto
+    role: auto
     profile_picture: typing.Optional[str] = None
 
     @strawberry.field
@@ -49,6 +64,7 @@ class UserRegistrationInput:
     bio: typing.Optional[str] = ""
     phone_number: typing.Optional[str] = ""
     default_location: typing.Optional[str] = ""
+    role: typing.Optional[str] = UserRole.FREEMIUM_USER
 
 
 # Registration result type
@@ -93,6 +109,7 @@ class Mutation:
             profile.bio = input.bio
             profile.phone_number = input.phone_number
             profile.default_location = input.default_location
+            profile.role = input.role
             profile.save()
             
             return UserRegistrationResult(
@@ -117,15 +134,34 @@ class Query:
             return user
         return None
     
-    @strawberry.django.field
+    @strawberry.django.field(permission_classes=[IsAdmin])
     def user(self, info: Info, id: strawberry.ID) -> typing.Optional[UserType]:
-        if not info.context.request.user.is_authenticated:
-            return None
-        
         try:
             return User.objects.get(id=id)
         except User.DoesNotExist:
             return None
+    
+    @strawberry.django.field(permission_classes=[IsAdmin])
+    def users(
+        self, 
+        info: Info, 
+        username: typing.Optional[str] = None,
+        role: typing.Optional[str] = None
+    ) -> typing.List[UserType]:
+        """
+        Returns a list of all users. Only accessible by admins.
+        Optional filters for username and role.
+        """
+        queryset = User.objects.all()
+        
+        # Apply filters if provided
+        if username:
+            queryset = queryset.filter(username__icontains=username)
+        
+        if role:
+            queryset = queryset.filter(profile__role=role)
+            
+        return queryset
 
 
 # Schema

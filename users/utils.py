@@ -1,8 +1,7 @@
-from django.contrib.auth.models import User
 from django.db import transaction
 from typing import Optional, Tuple, Union
 
-from users.models import UserRole
+from users.models import UserRole, User
 
 
 def create_admin_user(
@@ -48,9 +47,8 @@ def create_admin_user(
             )
             
             # Set admin role
-            profile = user.profile
-            profile.role = UserRole.ADMIN
-            profile.save()
+            user.role = UserRole.ADMIN
+            user.save()
             
             return user, True, "Admin user created successfully"
     except Exception as e:

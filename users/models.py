@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import  AbstractUser
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -17,12 +17,11 @@ class UserRole:
     ]
 
 
-class UserProfile(models.Model):
+class User(AbstractUser,models.Model):
     """
     User profile model that extends Django's built-in User model.
     Contains additional user information specific to the family map application.
     """
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
     bio = models.TextField(max_length=500, blank=True)
     phone_number = models.CharField(max_length=15, blank=True)
@@ -45,13 +44,3 @@ class UserProfile(models.Model):
         return self.role == UserRole.ADMIN
 
 
-# Signal to create or update user profile when a user is created or updated
-@receiver(post_save, sender=User)
-def create_or_update_user_profile(sender, instance, created, **kwargs):
-    """
-    Signal handler to create or update user profile when a user is created or updated.
-    """
-    if created:
-        UserProfile.objects.create(user=instance)
-    else:
-        instance.profile.save()

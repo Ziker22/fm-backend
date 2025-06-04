@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
 from pathlib import Path
+from datetime import timedelta
 
 from dotenv import load_dotenv
 
@@ -49,7 +50,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'place.apps.PlaceConfig',
     'users.apps.UsersConfig',  # Add the users app
+    'auth_api.apps.AuthApiConfig',  # Add the auth API app
     'strawberry.django',  # Add Strawberry GraphQL for Django
+    'rest_framework',  # Add Django REST framework
+    'rest_framework_simplejwt',  # Add Simple JWT
+    'rest_framework_simplejwt.token_blacklist',  # Add token blacklist for logout functionality
 ]
 
 MIDDLEWARE = [
@@ -100,7 +105,7 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
+AUTH_USER_MODEL = "users.User"
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -147,4 +152,31 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STRAWBERRY_DJANGO = {
     'FIELD_DESCRIPTION_FROM_HELP_TEXT': True,
     'TYPE_DESCRIPTION_FROM_MODEL_DOCSTRING': True,
+}
+
+# REST Framework settings
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+}
+
+# JWT settings
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=14),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,  # Enable blacklisting after token rotation
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
 }

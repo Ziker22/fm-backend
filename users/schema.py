@@ -1,26 +1,11 @@
 import strawberry
 import typing
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User
 from strawberry.django import auth
 from strawberry import auto
 from strawberry.types import Info
-from strawberry.permission import BasePermission
 
-from users.models import UserProfile, UserRole
-
-
-class IsAdmin(BasePermission):
-    """
-    Permission class that only allows users with admin role to access the field.
-    """
-    message = "User is not authorized to access this resource"
-
-    def has_permission(self, source, info: Info, **kwargs) -> bool:
-        user = info.context.request.user
-        if not user.is_authenticated:
-            return False
-        return hasattr(user, 'profile') and user.profile.is_admin
+from users.models import User, UserRole
+from auth_api.graphql.permissions import IsAuthenticated, IsAdmin
 
 
 # Define User type
@@ -33,24 +18,6 @@ class UserType:
     last_name: auto
     date_joined: auto
     is_active: auto
-    profile: "UserProfileType"
-
-
-# Define UserProfile type
-@strawberry.django.type(UserProfile)
-class UserProfileType:
-    id: auto
-    bio: auto
-    phone_number: auto
-    default_location: auto
-    role: auto
-    profile_picture: typing.Optional[str] = None
-
-    @strawberry.field
-    def profile_picture_url(self, root: UserProfile) -> typing.Optional[str]:
-        if root.profile_picture:
-            return root.profile_picture.url
-        return None
 
 
 # Input type for user registration
@@ -105,12 +72,11 @@ class Mutation:
             )
             
             # Update profile information
-            profile = user.profile
-            profile.bio = input.bio
-            profile.phone_number = input.phone_number
-            profile.default_location = input.default_location
-            profile.role = input.role
-            profile.save()
+            user.bio = input.bio
+            user.phone_number = input.phone_number
+            user.default_location = input.default_location
+            user.role = input.role
+            user.save()
             
             return UserRegistrationResult(
                 success=True,
@@ -127,13 +93,13 @@ class Mutation:
 # Queries
 @strawberry.type
 class Query:
-    @strawberry.field
+    @strawberry.field(permission_classes=[IsAuthenticated])
     def me(self, info: Info) -> typing.Optional[UserType]:
-        user = info.context.request.user
-        if user.is_authenticated:
-            return user
-        return None
-    
+        try:
+            return User.objects.get(id=info.context.request.user.id)
+        except User.DoesNotExist:
+            return None
+
     @strawberry.django.field(permission_classes=[IsAdmin])
     def user(self, info: Info, id: strawberry.ID) -> typing.Optional[UserType]:
         try:
@@ -159,10 +125,6 @@ class Query:
             queryset = queryset.filter(username__icontains=username)
         
         if role:
-            queryset = queryset.filter(profile__role=role)
+            queryset = queryset.filter(role=role)
             
         return queryset
-
-
-# Schema
-schema = strawberry.Schema(query=Query, mutation=Mutation)

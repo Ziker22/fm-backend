@@ -11,7 +11,8 @@ dependencies = [
     "strawberry-graphql-django (>=0.59.1,<0.60.0)",
     "python-dotenv (>=1.1.0,<2.0.0)",
     "django (>=5.2.1,<6.0.0)",
-    "psycopg[binary] (>=3.2.9,<4.0.0)"
+    "psycopg[binary] (>=3.2.9,<4.0.0)",
+    "pillow (>=11.2.1,<12.0.0)"
 ]
 
 

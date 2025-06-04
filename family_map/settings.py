@@ -47,7 +47,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'place.apps.PlaceConfig'
+    'place.apps.PlaceConfig',
+    'users.apps.UsersConfig',  # Add the users app
+    'strawberry.django',  # Add Strawberry GraphQL for Django
 ]
 
 MIDDLEWARE = [
@@ -132,8 +134,17 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Media files (User uploaded files)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Strawberry GraphQL settings
+STRAWBERRY_DJANGO = {
+    'FIELD_DESCRIPTION_FROM_HELP_TEXT': True,
+    'TYPE_DESCRIPTION_FROM_MODEL_DOCSTRING': True,
+}

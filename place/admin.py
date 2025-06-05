@@ -45,5 +45,17 @@ class PlaceForm(forms.ModelForm):
 
 @admin.register(Place)
 class PlaceAdmin(admin.ModelAdmin):
-    list_display = ('name', 'location','google_maps_url')
+    list_display = ('name', 'location', 'google_maps_url', 'created_at', 'updated_at')
+    readonly_fields = ('created_at', 'updated_at')
     form = PlaceForm
+    
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'type', ('lat', 'lon'), 'google_maps_url', 'website', 'note')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',),
+            'description': 'Automatically managed timestamp fields'
+        }),
+    )

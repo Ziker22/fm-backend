@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'common.apps.CommonConfig',  # Add the common app
     'place.apps.PlaceConfig',
     'users.apps.UsersConfig',  # Add the users app
     'auth_api.apps.AuthApiConfig',  # Add the auth API app

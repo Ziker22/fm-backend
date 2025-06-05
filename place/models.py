@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.gis.db import models as gis_models
+from common.models import CreatedUpdatedModel
 
-class Place(models.Model):
+class Place(CreatedUpdatedModel):
     class PlaceType(models.TextChoices):
         INDOOR_PLAYGROUND = "INDOOR_PLAYGROUND"
         PLAYGROUND = "PLAYGROUND"
@@ -16,8 +17,3 @@ class Place(models.Model):
     website = models.URLField(max_length=255)
     note = models.TextField(max_length=255, null=True, blank=True)
     type = models.CharField(max_length=255, choices=PlaceType.choices, null=False, blank=False)
-
-
-
-
-

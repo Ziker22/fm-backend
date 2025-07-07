@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="uv (family-map)" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Poetry (family-map)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="family-map-poetry" project-jdk-type="Python SDK" />
 </project>

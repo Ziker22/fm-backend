@@ -5,7 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0a9366e7-3798-42e5-9f4d-eaad0baa480e" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/family-map.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/family-map.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/family_map/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/family_map/settings.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,6 +69,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "main",
+    "junie.onboarding.icon.badge.shown": "true",
     "last_opened_file_path": "/Users/jurajslavicek/biz/family-map/place/migrations",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -72,6 +78,11 @@
     "nodejs_package_manager_path": "npm",
     "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
     "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "postgresql"
+    ]
   }
 }]]></component>
   <component name="RecentsManager">
@@ -189,31 +200,6 @@
       <option name="OPTIONS" value="" />
       <method v="2" />
     </configuration>
-    <configuration default="true" type="Python.DjangoServer" factoryName="Django server">
-      <module name="family-map" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="SDK_NAME" value="Poetry (family-map)" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="launchJavascriptDebuger" value="false" />
-      <option name="port" value="8000" />
-      <option name="host" value="" />
-      <option name="additionalOptions" value="" />
-      <option name="browserUrl" value="" />
-      <option name="runTestServer" value="false" />
-      <option name="runNoReload" value="false" />
-      <option name="useCustomRunCommand" value="false" />
-      <option name="customRunCommand" value="" />
-      <method v="2" />
-    </configuration>
     <configuration name="fam-map" type="Python.DjangoServer" factoryName="Django server">
       <module name="family-map" />
       <option name="ENV_FILES" value="" />
@@ -224,7 +210,6 @@
         <env name="DJANGO_SETTINGS_MODULE" value="family_map.settings" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="SDK_NAME" value="Poetry (family-map)" />
       <option name="WORKING_DIRECTORY" value="" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -240,6 +225,14 @@
       <option name="customRunCommand" value="" />
       <method v="2" />
     </configuration>
+    <list>
+      <item itemvalue="Django Server.fam-map" />
+      <item itemvalue="Django tests.Test: auth_api.tests.test_login.LoginMutationTests.test_admin_login" />
+      <item itemvalue="Django tests.Test: auth_api.tests.test_login.LoginMutationTests.test_inactive_user" />
+      <item itemvalue="Django tests.Test: users.tests.test_auth.JWTAuthenticationTests.test_protected_endpoints" />
+      <item itemvalue="Django tests.Test: users.tests.test_auth.JWTAuthenticationTests.test_token_refresh" />
+      <item itemvalue="Django tests.Test: users.tests.test_auth.JWTAuthenticationTests.test_user_registration" />
+    </list>
     <recent_temporary>
       <list>
         <item itemvalue="Django tests.Test: auth_api.tests.test_login.LoginMutationTests.test_inactive_user" />
@@ -268,6 +261,7 @@
       <workItem from="1747664455024" duration="10747000" />
       <workItem from="1747680631371" duration="2984000" />
       <workItem from="1749027392018" duration="16185000" />
+      <workItem from="1751876218249" duration="1487000" />
     </task>
     <servers />
   </component>

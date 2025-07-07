@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'place.apps.PlaceConfig',
     'users.apps.UsersConfig',  # Add the users app
     'auth_api.apps.AuthApiConfig',  # Add the auth API app
+    'scraping.apps.ScrapingConfig',
     'strawberry.django',  # Add Strawberry GraphQL for Django
     'rest_framework',  # Add Django REST framework
     'rest_framework_simplejwt',  # Add Simple JWT

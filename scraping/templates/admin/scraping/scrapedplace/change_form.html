@@ -1,0 +1,11 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls %}
+
+{% block submit_buttons_bottom %}
+    {{ block.super }}
+    {% if original %}
+        <div class="submit-row">
+            <input type="submit" value="{% trans 'Review this place' %}" name="_review" />
+        </div>
+    {% endif %}
+{% endblock %}

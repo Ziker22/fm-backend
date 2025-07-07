@@ -19,6 +19,15 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
     list_filter = ('processed',)
     search_fields = ('name',)
 
+    def response_change(self, request, obj):
+        """Add a review button to the response"""
+        response = super().response_change(request, obj)
+        if '_review' in request.POST:
+            return HttpResponseRedirect(
+                reverse('admin:scraping_scrapedplace_review_specific', args=[obj.pk])
+            )
+        return response
+
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
         extra_context['review_button_html'] = format_html(
@@ -31,17 +40,22 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
         urls = super().get_urls()
         custom_urls = [
             path('review/', self.admin_site.admin_view(self.review_view), name='scraping_scrapedplace_review'),
+            path('review/<int:place_id>/', self.admin_site.admin_view(self.review_view), name='scraping_scrapedplace_review_specific'),
             path('mark_processed/<int:place_id>/', self.admin_site.admin_view(self.mark_processed), name='scraping_scrapedplace_mark_processed'),
         ]
         return custom_urls + urls
 
-    def review_view(self, request):
+    def review_view(self, request, place_id=None):
         """View to review ScrapedPlace entries one by one"""
-        # Get the first unprocessed ScrapedPlace
-        place = ScrapedPlace.objects.filter(processed=False).order_by("name").first()
-        if not place:
-            self.message_user(request, "No unprocessed places found.")
-            return HttpResponseRedirect(reverse('admin:scraping_scrapedplace_changelist'))
+        if place_id:
+            # Get the specific ScrapedPlace
+            place = get_object_or_404(ScrapedPlace, id=place_id)
+        else:
+            # Get the first unprocessed ScrapedPlace
+            place = ScrapedPlace.objects.filter(processed=False).order_by("name").first()
+            if not place:
+                self.message_user(request, "No unprocessed places found.")
+                return HttpResponseRedirect(reverse('admin:scraping_scrapedplace_changelist'))
 
         context = {
             'place': place,

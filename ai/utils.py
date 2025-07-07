@@ -28,7 +28,7 @@ class OpenAIClient:
         citations = result['citations']
     """
 
-    def __init__(self, model: str = "gpt-3.5-turbo", temperature: float = 0.7):
+    def __init__(self, model: str = "gpt-4.1-mini-2025-04-14", temperature: float = 0.3):
         """
         Initialize the OpenAI client with the API key from environment variables.
 

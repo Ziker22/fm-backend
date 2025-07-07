@@ -1,0 +1,133 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block title %}Review Scraped Place | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block extrastyle %}
+<style>
+    .review-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    
+    .content-container {
+        display: flex;
+        flex-direction: row;
+        flex-grow: 1;
+        margin-bottom: 20px;
+    }
+    
+    .left-panel {
+        flex: 1;
+        padding: 20px;
+        border-right: 1px solid #ccc;
+    }
+    
+    .right-panel {
+        flex: 2;
+        padding: 20px;
+    }
+    
+    .actions-container {
+        padding: 20px;
+        border-top: 1px solid #ccc;
+        text-align: right;
+    }
+    
+    .field-label {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .field-value {
+        margin-bottom: 15px;
+    }
+    
+    .action-btn {
+        margin-left: 10px;
+    }
+    
+    .post-content {
+        white-space: pre-wrap;
+        margin-bottom: 20px;
+    }
+    
+    .post-comments {
+        white-space: pre-wrap;
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+    &rsaquo; <a href="{% url 'admin:scraping_scrapedplace_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+    &rsaquo; {% trans 'Review' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="review-container">
+    <h1>Review Scraped Place</h1>
+    
+    <div class="content-container">
+        <!-- Left panel: ScrapedPlace details -->
+        <div class="left-panel">
+            <h2>Place Details</h2>
+            
+            <div class="field-label">Name:</div>
+            <div class="field-value">{{ place.name }}</div>
+            
+            <div class="field-label">Types:</div>
+            <div class="field-value">
+                {% if place.types %}
+                    <ul>
+                    {% for type in place.types %}
+                        <li>{{ type }}</li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <em>No types specified</em>
+                {% endif %}
+            </div>
+            
+            <div class="field-label">Processed:</div>
+            <div class="field-value">{{ place.processed|yesno:"Yes,No" }}</div>
+        </div>
+        
+        <!-- Right panel: ScrapedPost details -->
+        <div class="right-panel">
+            <h2>Related Post</h2>
+            
+            {% if post %}
+                <div class="field-label">Title:</div>
+                <div class="field-value">{{ post.title }}</div>
+                
+                <div class="field-label">Content:</div>
+                <div class="field-value post-content">{{ post.content }}</div>
+                
+                <div class="field-label">Comments:</div>
+                <div class="field-value post-comments">
+                    {% if post.comments %}
+                        {% for comment in post.comments %}
+{{ comment }}
+                        {% endfor %}
+                    {% else %}
+                        <em>No comments</em>
+                    {% endif %}
+                </div>
+            {% else %}
+                <p><em>No related post found</em></p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Actions container -->
+    <div class="actions-container">
+        <a href="{% url 'admin:scraping_scrapedplace_changelist' %}" class="button action-btn">Cancel</a>
+        <a href="{% url 'admin:scraping_scrapedplace_mark_processed' place.id %}" class="button default action-btn">Mark as Processed</a>
+    </div>
+</div>
+{% endblock %}

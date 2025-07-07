@@ -10,7 +10,7 @@ class ScrapedPost(models.Model):
     comments = ArrayField(models.TextField(default=list))
     probability = models.FloatField()
 
-class ScrapedPlace(models.Model):
+class ScrapedPlace(models.Model,):
     name = models.CharField(max_length=255)
     types = ArrayField(models.CharField(max_length=255), default=list)
     post = models.ForeignKey(ScrapedPost, on_delete=models.CASCADE, related_name='places', null=True)

@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',  # Add the users app
     'auth_api.apps.AuthApiConfig',  # Add the auth API app
     'scraping.apps.ScrapingConfig',
+    'ai.apps.AiConfig',  # Add the AI app
     'strawberry.django',  # Add Strawberry GraphQL for Django
     'rest_framework',  # Add Django REST framework
     'rest_framework_simplejwt',  # Add Simple JWT

@@ -146,7 +146,6 @@
 
 {% block content %}
 <div class="review-container">
-    <h1>Review Scraped Place</h1>
 
     <div class="content-container">
         <!-- Left panel: ScrapedPlace details -->
@@ -230,6 +229,7 @@
                 </div>
 
                 <button id="save-place-btn" class="save-place-btn" data-place-id="{{ place.id }}">Save as place</button>
+                <button id="get-geo-btn" class="save-place-btn" data-place-id="{{ place.id }}">Get GEO</button>
             </div>
 
             <!-- Related Places Section -->
@@ -294,6 +294,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const askAiBtn = document.getElementById('ask-ai-btn');
         const savePlaceBtn = document.getElementById('save-place-btn');
+        const getGeoBtn = document.getElementById('get-geo-btn');
         const aiResponse = document.getElementById('ai-response');
         const relatedPlaces = document.getElementById('related-places');
         const relatedPlacesList = document.getElementById('related-places-list');
@@ -445,6 +446,73 @@
 
                 console.error('Error:', error);
                 alert('Error saving place: ' + error.message);
+            });
+        });
+
+        // Handle Get GEO button click
+        getGeoBtn.addEventListener('click', function() {
+            if (!aiResponseData) {
+                alert('No AI response data available. Please generate AI response first.');
+                return;
+            }
+
+            // Show loading indicator
+            loading.style.display = 'inline-block';
+
+            // Extract address components from AI response data
+            const street = aiResponseData.street || '';
+            const zipCode = aiResponseData.zip_code || '';
+            const city = aiResponseData.city || '';
+            const placeName = aiResponseData.name || '';
+            const countryCode = aiResponseData.country_code || 'us';
+
+            const placeId = this.getAttribute('data-place-id');
+
+            // Call the geocode_place endpoint
+            fetch(`/admin/scraping/scrapedplace/geocode/${placeId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    street: street,
+                    zip_code: zipCode,
+                    city: city,
+                    place_name: placeName,
+                    country_code: countryCode
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Hide loading indicator
+                loading.style.display = 'none';
+
+                if (data.success) {
+                    // Update the AI response data with the new lat/lon
+                    aiResponseData.lat = data.lat;
+                    aiResponseData.lon = data.lon;
+
+                    // Update the UI
+                    document.getElementById('ai-location').textContent = `${data.lat}, ${data.lon}`;
+
+                    // Show success message
+                    alert('Geocoding successful! Location updated.');
+                } else {
+                    alert('Error geocoding address: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                // Hide loading indicator
+                loading.style.display = 'none';
+
+                console.error('Error:', error);
+                alert('Error geocoding address: ' + error.message);
             });
         });
 

@@ -19,9 +19,9 @@ def get_place_review_prompt(name: str, city: str, types: list[str] = []) -> str:
     Return ONLY valid JSON with the following fields:
     - name: Corrected and complete name of the place
     - types: List of the most appropriate place types from the allowed list
-    - description: 2 paragraph description in Slovak language (3-5 sentences with at least one mentioning why is it goodfor kids)
-    - lat: As accurate as possible latitude of the place 6 decimal places, e.g., 48.133333333333336
-    - lon: As accurate as possible longitude of the place 6 decimal places, e.g., 17.111111111111112
+    - description: 2 paragraph description in Slovak language (3-5 sentences with at least one mentioning why is it good for kids)
+    - lat: it is absolutely neccessary to get as precise location as possible
+    - lon: it is absolutely neccessary to get as precise location as possible
     - country_code: ISO 3166-1 alpha-2 country code (e.g., "SK", "CZ", etc.)
     - street:  Keep in mind that address doesnt have to fully match city from input
     - city:  Keep in mind that address doesnt have to fully match city from input

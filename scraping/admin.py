@@ -10,6 +10,7 @@ from django.contrib.gis.geos import Point
 
 from ai.open_ai_client import OpenAIClient
 from ai.prompts import get_place_review_prompt
+from common.geocoding import geocode_address
 from .models import ScrapedPlace, ScrapedPost
 from place.models import Place
 
@@ -49,6 +50,7 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
             path('mark_processed/<int:place_id>/', self.admin_site.admin_view(self.mark_processed), name='scraping_scrapedplace_mark_processed'),
             path('ask_ai/<int:place_id>/', self.admin_site.admin_view(self.ask_ai), name='scraping_scrapedplace_ask_ai'),
             path('save_as_place/<int:place_id>/', self.admin_site.admin_view(self.save_as_place), name='scraping_scrapedplace_save_as_place'),
+            path('geocode/<int:place_id>/', self.admin_site.admin_view(self.geocode_place), name='scraping_scrapedplace_geocode'),
         ]
         return custom_urls + urls
 
@@ -200,6 +202,47 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
             }
 
             return JsonResponse(response_data)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    def geocode_place(self, request, place_id):
+        """Geocode a place using the geocode_address function"""
+        if request.method != 'POST':
+            return JsonResponse({"error": "Only POST method is allowed"}, status=405)
+
+        try:
+            # Parse the JSON data from the request
+            data = json.loads(request.body)
+
+            # Extract address components
+            street = data.get('street', '')
+            zip_code = data.get('zip_code', '')
+            city = data.get('city', '')
+            place_name = data.get('place_name', '')
+            country_code = data.get('country_code', 'us')
+
+            # Call the geocode_address function
+            point, response_data = geocode_address(
+                street=street,
+                zip_code=zip_code,
+                city=city,
+                place_name=place_name,
+                country_code=country_code
+            )
+
+            if point:
+                # Return the coordinates
+                return JsonResponse({
+                    "success": True,
+                    "lat": point.y,
+                    "lon": point.x
+                })
+            else:
+                # Return error if geocoding failed
+                return JsonResponse({
+                    "success": False,
+                    "error": "Geocoding failed. Please check the address."
+                })
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
 

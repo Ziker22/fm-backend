@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
+import logging
 from pathlib import Path
 from datetime import timedelta
 
@@ -69,6 +70,26 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+LOG_LEVEL = os.environ.get("LOG_LEVEL", logging.INFO)
+LOGGING = {
+    "version": 1,
+    # This will leave the default Django logging behavior in place
+    "disable_existing_loggers": False,
+    # Custom handler config that gets log messages and outputs them to console
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "level": LOG_LEVEL,
+        },
+    },
+    "loggers": {
+        # Send everything to console
+        "": {
+            "handlers": ["console"],
+            "level": LOG_LEVEL,
+        },
+    },
+}
 
 ROOT_URLCONF = 'family_map.urls'
 
@@ -183,3 +204,6 @@ SIMPLE_JWT = {
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
 }
+
+# Mapbox API settings
+MAPBOX_API_KEY = os.getenv('MAPBOX_API_KEY')

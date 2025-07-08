@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'rest_framework',  # Add Django REST framework
     'rest_framework_simplejwt',  # Add Simple JWT
     'rest_framework_simplejwt.token_blacklist',  # Add token blacklist for logout functionality
+    'mapwidgets',
 ]
 
 MIDDLEWARE = [
@@ -70,6 +71,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 LOG_LEVEL = os.environ.get("LOG_LEVEL", logging.INFO)
 LOGGING = {
     "version": 1,
@@ -207,3 +209,29 @@ SIMPLE_JWT = {
 
 # Mapbox API settings
 MAPBOX_API_KEY = os.getenv('MAPBOX_API_KEY')
+MAP_WIDGETS = {
+ "Mapbox": {
+    "accessToken": MAPBOX_API_KEY,
+"PointField": {
+        "static": {
+            "enableMagnificPopup": True,
+            "thumbnailSize": None,
+            "mapParams": {
+                "username": "mapbox",
+                "zoom": 18,
+                "bearing": 0,
+                "pitch": 0,
+                "style_id": "streets-v12",
+                "@2x": "@2x",
+                "width": "480",
+                "height": "480",
+            },
+            "overlayParams": {
+                "name": "pin-l",
+                "label": "",
+                "color": ""
+            },
+        },
+    },
+ }
+}

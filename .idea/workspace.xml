@@ -6,8 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="0a9366e7-3798-42e5-9f4d-eaad0baa480e" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scraping/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/scraping/admin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scraping/templates/admin/scraping/scrapedplace/review.html" beforeDir="false" afterPath="$PROJECT_DIR$/scraping/templates/admin/scraping/scrapedplace/review.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/family_map/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/family_map/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/place/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/place/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/poetry.lock" beforeDir="false" afterPath="$PROJECT_DIR$/poetry.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,7 +56,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "Django Server.fam-map.executor": "Debug",
+    "Django Server.fam-map.executor": "Run",
     "Django Server.family-map.executor": "Run",
     "Django tests.Test: auth_api.tests.test_login.LoginMutationTests.executor": "Run",
     "Django tests.Test: auth_api.tests.test_login.LoginMutationTests.test_admin_login.executor": "Debug",
@@ -265,7 +267,7 @@
       <workItem from="1751879482775" duration="4817000" />
       <workItem from="1751885371600" duration="598000" />
       <workItem from="1751887558922" duration="11312000" />
-      <workItem from="1751984586755" duration="5997000" />
+      <workItem from="1751984586755" duration="7766000" />
     </task>
     <servers />
   </component>

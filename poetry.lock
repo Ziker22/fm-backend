@@ -210,6 +210,18 @@ argon2 = ["argon2-cffi (>=19.1.0)"]
 bcrypt = ["bcrypt"]
 
 [[package]]
+name = "django-map-widgets"
+version = "0.5.1"
+description = "Configurable and user-friendly map widgets for GeoDjango fields"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "django_map_widgets-0.5.1-py3-none-any.whl", hash = "sha256:7307935163b46c6a2a225c85c91c7262a8b47a5c3aefbbc6d8fc7a5fda53b7cd"},
+    {file = "django_map_widgets-0.5.1.tar.gz", hash = "sha256:68e81f9c58c1cd6d180421220a4d100a185c8062ae0ca7be790658fcfd4eda1d"},
+]
+
+[[package]]
 name = "djangorestframework"
 version = "3.16.0"
 description = "Web APIs for Django, made easy."
@@ -1047,4 +1059,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "43dacc5bee99a363693fc7b13116b8369f3fb02ee33904cc86b8521fd06a16ed"
+content-hash = "e3cbbaf10abbb0235c7ab04f0caf68a44086c6a385b1c0ef2efc5fb5c1fa8430"

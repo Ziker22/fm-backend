@@ -1,7 +1,7 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.contrib.gis.db import models as gis_models
-from django.db.models import OneToOneField
+from django.db.models import OneToOneField, ForeignKey
 
 from common.models import CreatedUpdatedModel
 from scraping.models import ScrapedPlace
@@ -33,7 +33,7 @@ class Place(CreatedUpdatedModel):
         ALL = "ALL"
 
     name = models.CharField(max_length=255, null=False, blank=False)
-    scraped_id = OneToOneField(ScrapedPlace, on_delete=models.SET_NULL, null=True, blank=True)
+    scraped_id =ForeignKey(ScrapedPlace, on_delete=models.SET_NULL, related_name='places', null=True)
     type = ArrayField(models.CharField(max_length=255, choices=PlaceType.choices), default=list,db_index=True)
     description = models.TextField(null=True, blank=True)
     location = gis_models.PointField(null=False, blank=False)

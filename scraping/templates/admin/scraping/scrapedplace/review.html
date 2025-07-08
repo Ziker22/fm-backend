@@ -84,6 +84,54 @@
         font-style: italic;
         color: #6c757d;
     }
+
+    .save-place-btn {
+        display: block;
+        margin-top: 15px;
+        margin-bottom: 15px;
+        padding: 8px 15px;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .save-place-btn:hover {
+        background-color: #218838;
+    }
+
+    .related-places {
+        margin-top: 20px;
+        padding: 15px;
+        border: 1px solid #e9ecef;
+        border-radius: 4px;
+    }
+
+    .related-places h3 {
+        margin-top: 0;
+        margin-bottom: 15px;
+    }
+
+    .place-item {
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+    }
+
+    .place-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .place-item a {
+        color: #447e9b;
+        text-decoration: none;
+    }
+
+    .place-item a:hover {
+        color: #036;
+        text-decoration: underline;
+    }
 </style>
 {% endblock %}
 
@@ -180,6 +228,27 @@
                     <div class="ai-field-label">Stroller Friendly:</div>
                     <div id="ai-stroller" class="ai-field-value"></div>
                 </div>
+
+                <button id="save-place-btn" class="save-place-btn" data-place-id="{{ place.id }}">Save as place</button>
+            </div>
+
+            <!-- Related Places Section -->
+            <div id="related-places" class="related-places" {% if not related_places %}style="display: none;"{% endif %}>
+                <h3>Related Places</h3>
+
+                <div id="related-places-list">
+                    {% if related_places %}
+                        {% for place in related_places %}
+                            <div class="place-item">
+                                <div><strong>Name:</strong> <a href="{% url 'admin:place_place_change' place.id %}">{{ place.name }}</a></div>
+                                <div><strong>Types:</strong> {{ place.type|join:", " }}</div>
+                                <div><strong>City:</strong> {{ place.city }}</div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p><em>No related places found</em></p>
+                    {% endif %}
+                </div>
             </div>
         </div>
 
@@ -224,8 +293,14 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const askAiBtn = document.getElementById('ask-ai-btn');
+        const savePlaceBtn = document.getElementById('save-place-btn');
         const aiResponse = document.getElementById('ai-response');
+        const relatedPlaces = document.getElementById('related-places');
+        const relatedPlacesList = document.getElementById('related-places-list');
         const loading = document.getElementById('loading');
+
+        // Store the AI response data globally
+        let aiResponseData = null;
 
         askAiBtn.addEventListener('click', function() {
             const placeId = this.getAttribute('data-place-id');
@@ -242,6 +317,9 @@
                     return response.json();
                 })
                 .then(data => {
+                    // Store the AI response data
+                    aiResponseData = data;
+
                     // Hide loading indicator
                     loading.style.display = 'none';
 
@@ -319,6 +397,108 @@
                     alert('Error fetching AI response: ' + error.message);
                 });
         });
+
+        // Handle Save as place button click
+        savePlaceBtn.addEventListener('click', function() {
+            if (!aiResponseData) {
+                alert('No AI response data available. Please generate AI response first.');
+                return;
+            }
+
+            const placeId = this.getAttribute('data-place-id');
+
+            // Show loading indicator
+            loading.style.display = 'inline-block';
+
+            // Make API call to save the place
+            fetch(`/admin/scraping/scrapedplace/save_as_place/${placeId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(aiResponseData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Hide loading indicator
+                loading.style.display = 'none';
+
+                if (data.success) {
+                    // Show success message
+                    alert(data.message);
+
+                    // Update related places section
+                    updateRelatedPlaces(data.related_places);
+                } else {
+                    alert('Error saving place: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                // Hide loading indicator
+                loading.style.display = 'none';
+
+                console.error('Error:', error);
+                alert('Error saving place: ' + error.message);
+            });
+        });
+
+        // Function to update related places section
+        function updateRelatedPlaces(places) {
+            // Clear existing content
+            relatedPlacesList.innerHTML = '';
+
+            if (places && places.length > 0) {
+                // Add each place to the list
+                places.forEach(place => {
+                    const placeItem = document.createElement('div');
+                    placeItem.className = 'place-item';
+
+                    const nameDiv = document.createElement('div');
+                    nameDiv.innerHTML = `<strong>Name:</strong> <a href="/admin/place/place/${place.id}/change/">${place.name}</a>`;
+                    placeItem.appendChild(nameDiv);
+
+                    const typesDiv = document.createElement('div');
+                    typesDiv.innerHTML = `<strong>Types:</strong> ${Array.isArray(place.type) ? place.type.join(', ') : ''}`;
+                    placeItem.appendChild(typesDiv);
+
+                    const cityDiv = document.createElement('div');
+                    cityDiv.innerHTML = `<strong>City:</strong> ${place.city || ''}`;
+                    placeItem.appendChild(cityDiv);
+
+                    relatedPlacesList.appendChild(placeItem);
+                });
+            } else {
+                // Show no places message
+                const noPlaces = document.createElement('p');
+                noPlaces.innerHTML = '<em>No related places found</em>';
+                relatedPlacesList.appendChild(noPlaces);
+            }
+
+            // Show the related places section
+            relatedPlaces.style.display = 'block';
+        }
+
+        // Function to get CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
     });
 </script>
 {% endblock %}

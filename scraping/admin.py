@@ -6,10 +6,12 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from django.utils.html import format_html
 import json
+from django.contrib.gis.geos import Point
 
 from ai.open_ai_client import OpenAIClient
 from ai.prompts import get_place_review_prompt
 from .models import ScrapedPlace, ScrapedPost
+from place.models import Place
 
 @admin.register(ScrapedPost)
 class ScrapedPostAdmin(admin.ModelAdmin):
@@ -46,6 +48,7 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
             path('review/<int:place_id>/', self.admin_site.admin_view(self.review_view), name='scraping_scrapedplace_review_specific'),
             path('mark_processed/<int:place_id>/', self.admin_site.admin_view(self.mark_processed), name='scraping_scrapedplace_mark_processed'),
             path('ask_ai/<int:place_id>/', self.admin_site.admin_view(self.ask_ai), name='scraping_scrapedplace_ask_ai'),
+            path('save_as_place/<int:place_id>/', self.admin_site.admin_view(self.save_as_place), name='scraping_scrapedplace_save_as_place'),
         ]
         return custom_urls + urls
 
@@ -61,9 +64,13 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
                 self.message_user(request, "No unprocessed places found.")
                 return HttpResponseRedirect(reverse('admin:scraping_scrapedplace_changelist'))
 
+        # Get related places
+        related_places = Place.objects.filter(scraped_id=place)
+
         context = {
             'place': place,
             'post': place.post,
+            'related_places': related_places,
             'opts': self.model._meta,
             'title': 'Review Scraped Place',
             'app_label': self.model._meta.app_label,
@@ -105,6 +112,92 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
                 response_data = json.loads(response)
             else:
                 response_data = response
+
+            return JsonResponse(response_data)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    def save_as_place(self, request, place_id):
+        """Save AI response as a Place"""
+        if request.method != 'POST':
+            return JsonResponse({"error": "Only POST method is allowed"}, status=405)
+
+        scraped_place = get_object_or_404(ScrapedPlace, id=place_id)
+
+        try:
+            # Parse the JSON data from the request
+            data = json.loads(request.body)
+
+            # Create a Point object from lat and lon
+            if 'lat' in data and 'lon' in data:
+                location = Point(float(data['lon']), float(data['lat']))
+            else:
+                return JsonResponse({"error": "Latitude and longitude are required"}, status=400)
+
+            # Map season value to PlaceSeasonType
+            season_mapping = {
+                'winter': Place.PlaceSeasonType.WINTER,
+                'summer': Place.PlaceSeasonType.SUMMER,
+                'all': Place.PlaceSeasonType.ALL
+            }
+            season = season_mapping.get(data.get('season', '').lower(), Place.PlaceSeasonType.ALL)
+
+            # Map types to PlaceType
+            types = []
+            if 'types' in data and isinstance(data['types'], list):
+                for type_name in data['types']:
+                    type_upper = type_name.upper()
+                    if hasattr(Place.PlaceType, type_upper):
+                        types.append(getattr(Place.PlaceType, type_upper))
+
+            # Create and save the Place object
+            place = Place(
+                name=data.get('name', ''),
+                scraped_id=scraped_place,
+                type=types,
+                description=data.get('description', ''),
+                location=location,
+                country_code=data.get('country_code', ''),
+                city=data.get('city', ''),
+                min_age=data.get('min_age'),
+                max_age=data.get('max_age'),
+                website=data.get('website', ''),
+                street=data.get('street', ''),
+                zip_code=data.get('zip_code', ''),
+                season=season,
+                is_admission_free=data.get('is_admission_free', False)
+            )
+            place.save()
+
+            # Get all Places related to this ScrapedPlace
+            related_places = Place.objects.filter(scraped_id=scraped_place)
+
+            # Prepare the response data
+            response_data = {
+                "success": True,
+                "message": f"Place '{place.name}' saved successfully",
+                "place": {
+                    "id": place.id,
+                    "name": place.name,
+                    "type": place.type,
+                    "description": place.description,
+                    "city": place.city,
+                    "country_code": place.country_code,
+                    "min_age": place.min_age,
+                    "max_age": place.max_age,
+                    "website": place.website,
+                    "season": place.season,
+                    "is_admission_free": place.is_admission_free
+                },
+                "related_places": [
+                    {
+                        "id": p.id,
+                        "name": p.name,
+                        "type": p.type,
+                        "city": p.city
+                    } for p in related_places
+                ]
+            }
 
             return JsonResponse(response_data)
         except Exception as e:

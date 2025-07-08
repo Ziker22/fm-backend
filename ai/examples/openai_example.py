@@ -8,7 +8,7 @@ Before running this example, make sure to:
 1. Install the openai package: pip install openai
 2. Set the OPENAI_API_KEY environment variable in your .env file
 """
-from ai.utils import OpenAIClient
+from ai.open_ai_client import OpenAIClient
 
 
 def simple_chat_example():

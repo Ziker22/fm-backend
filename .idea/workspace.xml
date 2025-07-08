@@ -5,9 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0a9366e7-3798-42e5-9f4d-eaad0baa480e" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/ai/prompts.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scraping/migrations/0004_scrapedplace_city.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/place/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/place/admin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/place/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/place/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ai/examples/openai_example.py" beforeDir="false" afterPath="$PROJECT_DIR$/ai/examples/openai_example.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ai/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/ai/open_ai_client.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scraping/management/commands/import_jsonl.py" beforeDir="false" afterPath="$PROJECT_DIR$/scraping/management/commands/import_jsonl.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scraping/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/scraping/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scraping/templates/admin/scraping/scrapedplace/review.html" beforeDir="false" afterPath="$PROJECT_DIR$/scraping/templates/admin/scraping/scrapedplace/review.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_websearch.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_websearch.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -264,7 +270,7 @@
       <workItem from="1751876218249" duration="1487000" />
       <workItem from="1751879482775" duration="4817000" />
       <workItem from="1751885371600" duration="598000" />
-      <workItem from="1751887558922" duration="2292000" />
+      <workItem from="1751887558922" duration="9906000" />
     </task>
     <servers />
   </component>

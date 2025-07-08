@@ -79,6 +79,9 @@
             
             <div class="field-label">Name:</div>
             <div class="field-value">{{ place.name }}</div>
+
+            <div class="field-label">City:</div>
+            <div class="field-value">{{ place.city }}</div>
             
             <div class="field-label">Types:</div>
             <div class="field-value">
@@ -104,6 +107,9 @@
             {% if post %}
                 <div class="field-label">Title:</div>
                 <div class="field-value">{{ post.title }}</div>
+
+                <div class="field-label">Post created:</div>
+                <div class="field-value">{{ post.original_created_at }}</div>
                 
                 <div class="field-label">Content:</div>
                 <div class="field-value post-content">{{ post.content }}</div>

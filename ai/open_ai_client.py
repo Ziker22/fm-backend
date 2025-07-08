@@ -45,6 +45,19 @@ class OpenAIClient:
         self.temperature = temperature
         self.country = "SK"
 
+    def __get_json_string_from_completion(completion: str | None):
+        if completion is None:
+            return None
+
+        split_completion = completion.split("</think>")
+        without_thinking = split_completion[-1] if "<think>" in completion else completion
+        cleaned = (
+            re.sub(r"^```json\s*|\s*```$", "", without_thinking.strip())
+            if "json" in without_thinking
+            else without_thinking.strip()
+        )
+        return cleaned
+
 
     def get_chat_completion(
         self, 
@@ -83,64 +96,13 @@ class OpenAIClient:
     def get_websearch_response(
         self,
         prompt: str,
-        system_message: Optional[str] = None,
-        search_count: int = 3
+        is_json_reponse: bool = True,
     ) -> Dict[str, Any]:
 
-        messages = []
-
-        # Add system message if provided
-        if system_message:
-            messages.append({"role": "system", "content": system_message})
-
-        # Add user message
-        messages.append({"role": "user", "content": prompt})
-
-        # Configure web search tool
-        tools = [
-            {
-                "type": "web_search_preview",
-                "config": {
-                    "count": search_count,
-                    "user_location": {
-                        type: "approximate",
-                        "country": self.country
-                    }
-                }
-            }
-        ]
-
-        # Create completion with web search
-        response = self.client.chat.completions.create(
+        response =  self.client.responses.create(
             model=self.model,
-            messages=messages,
-            temperature=self.temperature,
-            tools=tools,
-            tool_choice="auto"
+            tools=[{"type": "web_search_preview"}],
+            input=prompt,
+            temperature=self.temperature
         )
-
-        # Extract the response content
-        content = response.choices[0].message.content
-
-        # Extract citations and search results if available
-        citations = []
-        search_results = []
-
-        if hasattr(response.choices[0].message, 'tool_calls') and response.choices[0].message.tool_calls:
-            for tool_call in response.choices[0].message.tool_calls:
-                if tool_call.type == 'web_search':
-                    search_results = tool_call.web_search.results
-
-                    # Extract citations from search results
-                    for result in search_results:
-                        citations.append({
-                            'title': result.get('title', ''),
-                            'url': result.get('url', ''),
-                            'snippet': result.get('snippet', '')
-                        })
-
-        return {
-            'content': content,
-            'citations': citations,
-            'search_results': search_results
-        }
+        return response.output_text if not is_json_reponse else self.__get_json_string_from_completion(response.output_text)

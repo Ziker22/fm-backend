@@ -8,7 +8,7 @@ works as expected.
 Note: This script requires the openai package to be installed and the OPENAI_API_KEY
 environment variable to be set.
 """
-from ai.utils import OpenAIClient
+from ai.open_ai_client import OpenAIClient
 
 def test_websearch():
     """

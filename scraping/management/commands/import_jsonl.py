@@ -57,6 +57,7 @@ class Command(BaseCommand):
                             content=data.get('perex', ''),
                             comments=data.get('comments', []),
                             probability=data.get('probability', 0.0),
+                            original_created_at=data.get('created', 0.0),
                         )
                         post.save()
                         processed_posts += 1
@@ -67,6 +68,7 @@ class Command(BaseCommand):
                         place = ScrapedPlace(
                             name=place_data.get('name', ''),
                             types=place_data.get('types', []),
+                            city=place_data.get('city', ''),
                             post=post
                         )
                         place.save()

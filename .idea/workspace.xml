@@ -5,15 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0a9366e7-3798-42e5-9f4d-eaad0baa480e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/ai/prompts.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scraping/migrations/0004_scrapedplace_city.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ai/examples/openai_example.py" beforeDir="false" afterPath="$PROJECT_DIR$/ai/examples/openai_example.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ai/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/ai/open_ai_client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scraping/management/commands/import_jsonl.py" beforeDir="false" afterPath="$PROJECT_DIR$/scraping/management/commands/import_jsonl.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scraping/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/scraping/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ai/open_ai_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/ai/open_ai_client.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scraping/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/scraping/admin.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/scraping/templates/admin/scraping/scrapedplace/review.html" beforeDir="false" afterPath="$PROJECT_DIR$/scraping/templates/admin/scraping/scrapedplace/review.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_websearch.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_websearch.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -58,39 +53,39 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Django Server.fam-map.executor&quot;: &quot;Run&quot;,
-    &quot;Django Server.family-map.executor&quot;: &quot;Run&quot;,
-    &quot;Django tests.Test: auth_api.tests.test_login.LoginMutationTests.executor&quot;: &quot;Run&quot;,
-    &quot;Django tests.Test: auth_api.tests.test_login.LoginMutationTests.test_admin_login.executor&quot;: &quot;Debug&quot;,
-    &quot;Django tests.Test: auth_api.tests.test_login.LoginMutationTests.test_inactive_user.executor&quot;: &quot;Run&quot;,
-    &quot;Django tests.Test: auth_api.tests.test_login.LoginMutationTests.test_successful_login.executor&quot;: &quot;Run&quot;,
-    &quot;Django tests.Test: users.tests.test_auth.JWTAuthenticationTests.executor&quot;: &quot;Debug&quot;,
-    &quot;Django tests.Test: users.tests.test_auth.JWTAuthenticationTests.test_protected_endpoints.executor&quot;: &quot;Debug&quot;,
-    &quot;Django tests.Test: users.tests.test_auth.JWTAuthenticationTests.test_token_refresh.executor&quot;: &quot;Debug&quot;,
-    &quot;Django tests.Test: users.tests.test_auth.JWTAuthenticationTests.test_user_registration.executor&quot;: &quot;Debug&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.OpenDjangoStructureViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/jurajslavicek/biz/family-map/place/migrations&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.intellij.python.django.customization.DjangoModulesConfigurable&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Django Server.fam-map.executor": "Run",
+    "Django Server.family-map.executor": "Run",
+    "Django tests.Test: auth_api.tests.test_login.LoginMutationTests.executor": "Run",
+    "Django tests.Test: auth_api.tests.test_login.LoginMutationTests.test_admin_login.executor": "Debug",
+    "Django tests.Test: auth_api.tests.test_login.LoginMutationTests.test_inactive_user.executor": "Run",
+    "Django tests.Test: auth_api.tests.test_login.LoginMutationTests.test_successful_login.executor": "Run",
+    "Django tests.Test: users.tests.test_auth.JWTAuthenticationTests.executor": "Debug",
+    "Django tests.Test: users.tests.test_auth.JWTAuthenticationTests.test_protected_endpoints.executor": "Debug",
+    "Django tests.Test: users.tests.test_auth.JWTAuthenticationTests.test_token_refresh.executor": "Debug",
+    "Django tests.Test: users.tests.test_auth.JWTAuthenticationTests.test_user_registration.executor": "Debug",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.OpenDjangoStructureViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "/Users/jurajslavicek/biz/family-map/place/migrations",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "com.intellij.python.django.customization.DjangoModulesConfigurable",
+    "vue.rearranger.settings.migration": "true"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;DatabaseDriversLRU&quot;: [
-      &quot;postgresql&quot;
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "postgresql"
     ]
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/place/migrations" />
@@ -270,7 +265,7 @@
       <workItem from="1751876218249" duration="1487000" />
       <workItem from="1751879482775" duration="4817000" />
       <workItem from="1751885371600" duration="598000" />
-      <workItem from="1751887558922" duration="9906000" />
+      <workItem from="1751887558922" duration="10990000" />
     </task>
     <servers />
   </component>

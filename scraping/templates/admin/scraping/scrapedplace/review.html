@@ -10,51 +10,79 @@
         flex-direction: column;
         height: 100%;
     }
-    
+
     .content-container {
         display: flex;
         flex-direction: row;
         flex-grow: 1;
         margin-bottom: 20px;
     }
-    
+
     .left-panel {
         flex: 1;
         padding: 20px;
         border-right: 1px solid #ccc;
     }
-    
+
     .right-panel {
         flex: 2;
         padding: 20px;
     }
-    
+
     .actions-container {
         padding: 20px;
         border-top: 1px solid #ccc;
         text-align: right;
     }
-    
+
     .field-label {
         font-weight: bold;
         margin-bottom: 5px;
     }
-    
+
     .field-value {
         margin-bottom: 15px;
     }
-    
+
     .action-btn {
         margin-left: 10px;
     }
-    
+
     .post-content {
         white-space: pre-wrap;
         margin-bottom: 20px;
     }
-    
+
     .post-comments {
         white-space: pre-wrap;
+    }
+
+    .ai-response {
+        margin-top: 20px;
+        padding: 15px;
+        border: 1px solid #e9ecef;
+        border-radius: 4px;
+        display: none;
+    }
+
+    .ai-field {
+        margin-bottom: 10px;
+    }
+
+    .ai-field-label {
+        font-weight: bold;
+        color: #495057;
+    }
+
+    .ai-field-value {
+        margin-top: 3px;
+    }
+
+    .loading {
+        display: inline-block;
+        margin-left: 10px;
+        font-style: italic;
+        color: #6c757d;
     }
 </style>
 {% endblock %}
@@ -71,18 +99,18 @@
 {% block content %}
 <div class="review-container">
     <h1>Review Scraped Place</h1>
-    
+
     <div class="content-container">
         <!-- Left panel: ScrapedPlace details -->
         <div class="left-panel">
             <h2>Place Details</h2>
-            
+
             <div class="field-label">Name:</div>
             <div class="field-value">{{ place.name }}</div>
 
             <div class="field-label">City:</div>
             <div class="field-value">{{ place.city }}</div>
-            
+
             <div class="field-label">Types:</div>
             <div class="field-value">
                 {% if place.types %}
@@ -95,25 +123,80 @@
                     <em>No types specified</em>
                 {% endif %}
             </div>
-            
+
             <div class="field-label">Processed:</div>
             <div class="field-value">{{ place.processed|yesno:"Yes,No" }}</div>
+
+            <!-- AI Response Section -->
+            <div id="ai-response" class="ai-response">
+                <h3>AI Generated Information</h3>
+
+                <div class="ai-field">
+                    <div class="ai-field-label">Name:</div>
+                    <div id="ai-name" class="ai-field-value"></div>
+                </div>
+
+                <div class="ai-field">
+                    <div class="ai-field-label">Types:</div>
+                    <div id="ai-types" class="ai-field-value"></div>
+                </div>
+
+                <div class="ai-field">
+                    <div class="ai-field-label">Description:</div>
+                    <div id="ai-description" class="ai-field-value"></div>
+                </div>
+
+                <div class="ai-field">
+                    <div class="ai-field-label">Location:</div>
+                    <div id="ai-location" class="ai-field-value"></div>
+                </div>
+
+                <div class="ai-field">
+                    <div class="ai-field-label">Address:</div>
+                    <div id="ai-address" class="ai-field-value"></div>
+                </div>
+
+                <div class="ai-field">
+                    <div class="ai-field-label">Age Range:</div>
+                    <div id="ai-age-range" class="ai-field-value"></div>
+                </div>
+
+                <div class="ai-field">
+                    <div class="ai-field-label">Website:</div>
+                    <div id="ai-website" class="ai-field-value"></div>
+                </div>
+
+                <div class="ai-field">
+                    <div class="ai-field-label">Admission:</div>
+                    <div id="ai-admission" class="ai-field-value"></div>
+                </div>
+
+                <div class="ai-field">
+                    <div class="ai-field-label">Season:</div>
+                    <div id="ai-season" class="ai-field-value"></div>
+                </div>
+
+                <div class="ai-field">
+                    <div class="ai-field-label">Stroller Friendly:</div>
+                    <div id="ai-stroller" class="ai-field-value"></div>
+                </div>
+            </div>
         </div>
-        
+
         <!-- Right panel: ScrapedPost details -->
         <div class="right-panel">
             <h2>Related Post</h2>
-            
+
             {% if post %}
                 <div class="field-label">Title:</div>
                 <div class="field-value">{{ post.title }}</div>
 
                 <div class="field-label">Post created:</div>
                 <div class="field-value">{{ post.original_created_at }}</div>
-                
+
                 <div class="field-label">Content:</div>
                 <div class="field-value post-content">{{ post.content }}</div>
-                
+
                 <div class="field-label">Comments:</div>
                 <div class="field-value post-comments">
                     {% if post.comments %}
@@ -129,11 +212,113 @@
             {% endif %}
         </div>
     </div>
-    
+
     <!-- Actions container -->
     <div class="actions-container">
+        <button id="ask-ai-btn" class="button action-btn" data-place-id="{{ place.id }}">AskAI <span id="loading" class="loading" style="display: none;">Processing...</span></button>
         <a href="{% url 'admin:scraping_scrapedplace_changelist' %}" class="button action-btn">Cancel</a>
         <a href="{% url 'admin:scraping_scrapedplace_mark_processed' place.id %}" class="button default action-btn">Mark as Processed</a>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const askAiBtn = document.getElementById('ask-ai-btn');
+        const aiResponse = document.getElementById('ai-response');
+        const loading = document.getElementById('loading');
+
+        askAiBtn.addEventListener('click', function() {
+            const placeId = this.getAttribute('data-place-id');
+
+            // Show loading indicator
+            loading.style.display = 'inline-block';
+
+            // Make API call
+            fetch(`/admin/scraping/scrapedplace/ask_ai/${placeId}/`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Hide loading indicator
+                    loading.style.display = 'none';
+
+                    // Update UI with response
+                    document.getElementById('ai-name').textContent = data.name || '';
+
+                    // Handle types array
+                    if (data.types && Array.isArray(data.types)) {
+                        document.getElementById('ai-types').textContent = data.types.join(', ');
+                    } else {
+                        document.getElementById('ai-types').textContent = '';
+                    }
+
+                    document.getElementById('ai-description').textContent = data.description || '';
+
+                    // Format location
+                    if (data.lat && data.lon) {
+                        document.getElementById('ai-location').textContent = `${data.lat}, ${data.lon}`;
+                    } else {
+                        document.getElementById('ai-location').textContent = '';
+                    }
+
+                    // Format address
+                    const address = [];
+                    if (data.street) address.push(data.street);
+                    if (data.city) address.push(data.city);
+                    if (data.zip_code) address.push(data.zip_code);
+                    if (data.country_code) address.push(data.country_code);
+                    document.getElementById('ai-address').textContent = address.join(', ');
+
+                    // Format age range
+                    if (data.min_age !== undefined && data.max_age !== undefined) {
+                        document.getElementById('ai-age-range').textContent = `${data.min_age} - ${data.max_age} years`;
+                    } else {
+                        document.getElementById('ai-age-range').textContent = '';
+                    }
+
+                    // Website with link
+                    if (data.website) {
+                        const link = document.createElement('a');
+                        link.href = data.website;
+                        link.textContent = data.website;
+                        link.target = '_blank';
+                        document.getElementById('ai-website').innerHTML = '';
+                        document.getElementById('ai-website').appendChild(link);
+                    } else {
+                        document.getElementById('ai-website').textContent = '';
+                    }
+
+                    // Admission
+                    if (data.is_admission_free !== undefined) {
+                        document.getElementById('ai-admission').textContent = data.is_admission_free ? 'Free' : 'Paid';
+                    } else {
+                        document.getElementById('ai-admission').textContent = 'Unknown';
+                    }
+
+                    // Season
+                    document.getElementById('ai-season').textContent = data.season || '';
+
+                    // Stroller friendly
+                    if (data.stroller_friendly !== undefined) {
+                        document.getElementById('ai-stroller').textContent = data.stroller_friendly ? 'Yes' : 'No';
+                    } else {
+                        document.getElementById('ai-stroller').textContent = 'Unknown';
+                    }
+
+                    // Show the AI response section
+                    aiResponse.style.display = 'block';
+                })
+                .catch(error => {
+                    // Hide loading indicator
+                    loading.style.display = 'none';
+
+                    console.error('Error:', error);
+                    alert('Error fetching AI response: ' + error.message);
+                });
+        });
+    });
+</script>
 {% endblock %}

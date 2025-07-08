@@ -3,6 +3,7 @@ Utility functions and classes for the AI app.
 This module contains utilities for interacting with AI services.
 """
 import os
+import re
 from typing import Optional, List, Dict, Any
 
 from openai import OpenAI
@@ -45,7 +46,7 @@ class OpenAIClient:
         self.temperature = temperature
         self.country = "SK"
 
-    def __get_json_string_from_completion(completion: str | None):
+    def __get_json_string_from_completion(self, completion: str | None):
         if completion is None:
             return None
 

@@ -119,6 +119,47 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
             else:
                 response_data = response
 
+            # Find nearby and similarly-named places if lat and lon are available
+            nearby_places = []
+            similar_name_places = []
+
+            if 'lat' in response_data and 'lon' in response_data:
+                # Create a point from the lat and lon
+                point = Point(float(response_data['lon']), float(response_data['lat']))
+
+                # Find places within 200 meters
+                from django.contrib.gis.measure import D
+                nearby_places = Place.objects.filter(
+                    location__distance_lte=(point, D(m=200))
+                )
+
+                # Find places with similar names
+                if 'name' in response_data and response_data['name']:
+                    from django.db.models import Q
+                    similar_name_places = Place.objects.filter(
+                        Q(name__icontains=response_data['name']) | 
+                        Q(name__icontains=place.name)
+                    ).exclude(id__in=[p.id for p in nearby_places])
+
+            # Add nearby and similar name places to the response
+            response_data['nearby_places'] = [
+                {
+                    "id": p.id,
+                    "name": p.name,
+                    "type": p.type,
+                    "city": p.city
+                } for p in nearby_places
+            ]
+
+            response_data['similar_name_places'] = [
+                {
+                    "id": p.id,
+                    "name": p.name,
+                    "type": p.type,
+                    "city": p.city
+                } for p in similar_name_places
+            ]
+
             return JsonResponse(response_data)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
@@ -151,6 +192,47 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
                 response_data = json.loads(response)
             else:
                 response_data = response
+
+            # Find nearby and similarly-named places if lat and lon are available
+            nearby_places = []
+            similar_name_places = []
+
+            if 'lat' in response_data and 'lon' in response_data:
+                # Create a point from the lat and lon
+                point = Point(float(response_data['lon']), float(response_data['lat']))
+
+                # Find places within 200 meters
+                from django.contrib.gis.measure import D
+                nearby_places = Place.objects.filter(
+                    location__distance_lte=(point, D(m=200))
+                )
+
+                # Find places with similar names
+                if 'name' in response_data and response_data['name']:
+                    from django.db.models import Q
+                    similar_name_places = Place.objects.filter(
+                        Q(name__icontains=response_data['name']) | 
+                        Q(name__icontains=selected_text)
+                    ).exclude(id__in=[p.id for p in nearby_places])
+
+            # Add nearby and similar name places to the response
+            response_data['nearby_places'] = [
+                {
+                    "id": p.id,
+                    "name": p.name,
+                    "type": p.type,
+                    "city": p.city
+                } for p in nearby_places
+            ]
+
+            response_data['similar_name_places'] = [
+                {
+                    "id": p.id,
+                    "name": p.name,
+                    "type": p.type,
+                    "city": p.city
+                } for p in similar_name_places
+            ]
 
             return JsonResponse(response_data)
         except Exception as e:

@@ -5,9 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0a9366e7-3798-42e5-9f4d-eaad0baa480e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ai/prompts.py" beforeDir="false" afterPath="$PROJECT_DIR$/ai/prompts.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/place/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/place/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scraping/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/scraping/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scraping/templates/admin/scraping/scrapedplace/review.html" beforeDir="false" afterPath="$PROJECT_DIR$/scraping/templates/admin/scraping/scrapedplace/review.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -265,7 +264,7 @@
       <workItem from="1751879482775" duration="4817000" />
       <workItem from="1751885371600" duration="598000" />
       <workItem from="1751887558922" duration="11312000" />
-      <workItem from="1751984586755" duration="8434000" />
+      <workItem from="1751984586755" duration="8753000" />
     </task>
     <servers />
   </component>

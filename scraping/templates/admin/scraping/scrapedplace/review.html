@@ -398,6 +398,9 @@
 
                     // Update UI with response
                     updateUIWithAIResponse(data);
+
+                    // Update related places with nearby and similar name places
+                    updateRelatedPlaces([], data.nearby_places || [], data.similar_name_places || []);
                 })
                 .catch(error => {
                     // Hide loading indicator
@@ -443,6 +446,9 @@
 
                         // Update UI with response
                         updateUIWithAIResponse(data);
+
+                        // Update related places with nearby and similar name places
+                        updateRelatedPlaces([], data.nearby_places || [], data.similar_name_places || []);
                     })
                     .catch(error => {
                         // Hide loading indicator
@@ -489,7 +495,7 @@
                             alert(data.message);
 
                             // Update related places section
-                            updateRelatedPlaces(data.related_places);
+                            updateRelatedPlaces(data.related_places, data.nearby_places || [], data.similar_name_places || []);
                         } else {
                             alert('Error saving place: ' + (data.error || 'Unknown error'));
                         }
@@ -571,32 +577,59 @@
             });
 
             // Function to update related places section
-            function updateRelatedPlaces(places) {
+            function updateRelatedPlaces(places, nearbyPlaces = [], similarNamePlaces = []) {
                 // Clear existing content
                 relatedPlacesList.innerHTML = '';
 
+                // Create a function to add places to the list with a header
+                function addPlacesWithHeader(header, placesList) {
+                    if (placesList && placesList.length > 0) {
+                        // Add header
+                        const headerElement = document.createElement('h4');
+                        headerElement.textContent = header;
+                        relatedPlacesList.appendChild(headerElement);
+
+                        // Add each place
+                        placesList.forEach(place => {
+                            const placeItem = document.createElement('div');
+                            placeItem.className = 'place-item';
+
+                            const nameDiv = document.createElement('div');
+                            nameDiv.innerHTML = `<strong>Name:</strong> <a href="/admin/place/place/${place.id}/change/">${place.name}</a>`;
+                            placeItem.appendChild(nameDiv);
+
+                            const typesDiv = document.createElement('div');
+                            typesDiv.innerHTML = `<strong>Types:</strong> ${Array.isArray(place.type) ? place.type.join(', ') : ''}`;
+                            placeItem.appendChild(typesDiv);
+
+                            const cityDiv = document.createElement('div');
+                            cityDiv.innerHTML = `<strong>City:</strong> ${place.city || ''}`;
+                            placeItem.appendChild(cityDiv);
+
+                            relatedPlacesList.appendChild(placeItem);
+                        });
+                    }
+                }
+
+                // Add places directly related to this ScrapedPlace
                 if (places && places.length > 0) {
-                    // Add each place to the list
-                    places.forEach(place => {
-                        const placeItem = document.createElement('div');
-                        placeItem.className = 'place-item';
+                    addPlacesWithHeader('Related Places', places);
+                }
 
-                        const nameDiv = document.createElement('div');
-                        nameDiv.innerHTML = `<strong>Name:</strong> <a href="/admin/place/place/${place.id}/change/">${place.name}</a>`;
-                        placeItem.appendChild(nameDiv);
+                // Add nearby places
+                if (nearbyPlaces && nearbyPlaces.length > 0) {
+                    addPlacesWithHeader('Places within 200 meters', nearbyPlaces);
+                }
 
-                        const typesDiv = document.createElement('div');
-                        typesDiv.innerHTML = `<strong>Types:</strong> ${Array.isArray(place.type) ? place.type.join(', ') : ''}`;
-                        placeItem.appendChild(typesDiv);
+                // Add places with similar names
+                if (similarNamePlaces && similarNamePlaces.length > 0) {
+                    addPlacesWithHeader('Places with similar names', similarNamePlaces);
+                }
 
-                        const cityDiv = document.createElement('div');
-                        cityDiv.innerHTML = `<strong>City:</strong> ${place.city || ''}`;
-                        placeItem.appendChild(cityDiv);
-
-                        relatedPlacesList.appendChild(placeItem);
-                    });
-                } else {
-                    // Show no places message
+                // If no places in any category, show no places message
+                if ((!places || places.length === 0) && 
+                    (!nearbyPlaces || nearbyPlaces.length === 0) && 
+                    (!similarNamePlaces || similarNamePlaces.length === 0)) {
                     const noPlaces = document.createElement('p');
                     noPlaces.innerHTML = '<em>No related places found</em>';
                     relatedPlacesList.appendChild(noPlaces);

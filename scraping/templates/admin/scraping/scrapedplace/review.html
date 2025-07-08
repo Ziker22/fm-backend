@@ -285,6 +285,7 @@
     <!-- Actions container -->
     <div class="actions-container">
         <button id="ask-ai-btn" class="button action-btn" data-place-id="{{ place.id }}">AskAI <span id="loading" class="loading" style="display: none;">Processing...</span></button>
+        <button id="ask-ai-selection-btn" class="button action-btn" data-place-id="{{ place.id }}">ASK AI from selection <span id="loading-selection" class="loading" style="display: none;">Processing...</span></button>
         <a href="{% url 'admin:scraping_scrapedplace_changelist' %}" class="button action-btn">Cancel</a>
         <a href="{% url 'admin:scraping_scrapedplace_mark_processed' place.id %}" class="button default action-btn">Mark as Processed</a>
     </div>
@@ -293,17 +294,91 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const askAiBtn = document.getElementById('ask-ai-btn');
+        const askAiSelectionBtn = document.getElementById('ask-ai-selection-btn');
         const savePlaceBtn = document.getElementById('save-place-btn');
         const getGeoBtn = document.getElementById('get-geo-btn');
         const aiResponse = document.getElementById('ai-response');
         const relatedPlaces = document.getElementById('related-places');
         const relatedPlacesList = document.getElementById('related-places-list');
         const loading = document.getElementById('loading');
+        const loadingSelection = document.getElementById('loading-selection');
 
         // Store the AI response data globally
         let aiResponseData = null;
 
-        askAiBtn.addEventListener('click', function() {
+        // Function to update UI with AI response data
+        function updateUIWithAIResponse(data) {
+            // Store the AI response data
+            aiResponseData = data;
+
+            // Update UI with response
+            document.getElementById('ai-name').textContent = data.name || '';
+
+            // Handle types array
+            if (data.types && Array.isArray(data.types)) {
+                document.getElementById('ai-types').textContent = data.types.join(', ');
+            } else {
+                document.getElementById('ai-types').textContent = '';
+            }
+
+            document.getElementById('ai-description').textContent = data.description || '';
+
+            // Format location
+            if (data.lat && data.lon) {
+                document.getElementById('ai-location').textContent = `${data.lat}, ${data.lon}`;
+            } else {
+                document.getElementById('ai-location').textContent = '';
+            }
+
+            // Format address
+            const address = [];
+            if (data.street) address.push(data.street);
+            if (data.city) address.push(data.city);
+            if (data.zip_code) address.push(data.zip_code);
+            if (data.country_code) address.push(data.country_code);
+            document.getElementById('ai-address').textContent = address.join(', ');
+
+            // Format age range
+            if (data.min_age !== undefined && data.max_age !== undefined) {
+                document.getElementById('ai-age-range').textContent = `${data.min_age} - ${data.max_age} years`;
+            } else {
+                document.getElementById('ai-age-range').textContent = '';
+            }
+
+            // Website with link
+            if (data.website) {
+                const link = document.createElement('a');
+                link.href = data.website;
+                link.textContent = data.website;
+                link.target = '_blank';
+                document.getElementById('ai-website').innerHTML = '';
+                document.getElementById('ai-website').appendChild(link);
+            } else {
+                document.getElementById('ai-website').textContent = '';
+            }
+
+            // Admission
+            if (data.is_admission_free !== undefined) {
+                document.getElementById('ai-admission').textContent = data.is_admission_free ? 'Free' : 'Paid';
+            } else {
+                document.getElementById('ai-admission').textContent = 'Unknown';
+            }
+
+            // Season
+            document.getElementById('ai-season').textContent = data.season || '';
+
+            // Stroller friendly
+            if (data.stroller_friendly !== undefined) {
+                document.getElementById('ai-stroller').textContent = data.stroller_friendly ? 'Yes' : 'No';
+            } else {
+                document.getElementById('ai-stroller').textContent = 'Unknown';
+            }
+
+            // Show the AI response section
+            aiResponse.style.display = 'block';
+        }
+
+        askAiBtn.addEventListener('click', function () {
             const placeId = this.getAttribute('data-place-id');
 
             // Show loading indicator
@@ -318,77 +393,11 @@
                     return response.json();
                 })
                 .then(data => {
-                    // Store the AI response data
-                    aiResponseData = data;
-
                     // Hide loading indicator
                     loading.style.display = 'none';
 
                     // Update UI with response
-                    document.getElementById('ai-name').textContent = data.name || '';
-
-                    // Handle types array
-                    if (data.types && Array.isArray(data.types)) {
-                        document.getElementById('ai-types').textContent = data.types.join(', ');
-                    } else {
-                        document.getElementById('ai-types').textContent = '';
-                    }
-
-                    document.getElementById('ai-description').textContent = data.description || '';
-
-                    // Format location
-                    if (data.lat && data.lon) {
-                        document.getElementById('ai-location').textContent = `${data.lat}, ${data.lon}`;
-                    } else {
-                        document.getElementById('ai-location').textContent = '';
-                    }
-
-                    // Format address
-                    const address = [];
-                    if (data.street) address.push(data.street);
-                    if (data.city) address.push(data.city);
-                    if (data.zip_code) address.push(data.zip_code);
-                    if (data.country_code) address.push(data.country_code);
-                    document.getElementById('ai-address').textContent = address.join(', ');
-
-                    // Format age range
-                    if (data.min_age !== undefined && data.max_age !== undefined) {
-                        document.getElementById('ai-age-range').textContent = `${data.min_age} - ${data.max_age} years`;
-                    } else {
-                        document.getElementById('ai-age-range').textContent = '';
-                    }
-
-                    // Website with link
-                    if (data.website) {
-                        const link = document.createElement('a');
-                        link.href = data.website;
-                        link.textContent = data.website;
-                        link.target = '_blank';
-                        document.getElementById('ai-website').innerHTML = '';
-                        document.getElementById('ai-website').appendChild(link);
-                    } else {
-                        document.getElementById('ai-website').textContent = '';
-                    }
-
-                    // Admission
-                    if (data.is_admission_free !== undefined) {
-                        document.getElementById('ai-admission').textContent = data.is_admission_free ? 'Free' : 'Paid';
-                    } else {
-                        document.getElementById('ai-admission').textContent = 'Unknown';
-                    }
-
-                    // Season
-                    document.getElementById('ai-season').textContent = data.season || '';
-
-                    // Stroller friendly
-                    if (data.stroller_friendly !== undefined) {
-                        document.getElementById('ai-stroller').textContent = data.stroller_friendly ? 'Yes' : 'No';
-                    } else {
-                        document.getElementById('ai-stroller').textContent = 'Unknown';
-                    }
-
-                    // Show the AI response section
-                    aiResponse.style.display = 'block';
+                    updateUIWithAIResponse(data);
                 })
                 .catch(error => {
                     // Hide loading indicator
@@ -397,176 +406,222 @@
                     console.error('Error:', error);
                     alert('Error fetching AI response: ' + error.message);
                 });
-        });
-
-        // Handle Save as place button click
-        savePlaceBtn.addEventListener('click', function() {
-            if (!aiResponseData) {
-                alert('No AI response data available. Please generate AI response first.');
-                return;
-            }
-
-            const placeId = this.getAttribute('data-place-id');
-
-            // Show loading indicator
-            loading.style.display = 'inline-block';
-
-            // Make API call to save the place
-            fetch(`/admin/scraping/scrapedplace/save_as_place/${placeId}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify(aiResponseData)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
+        })
+            // Handle ASK AI from selection button click
+            askAiSelectionBtn.addEventListener('click', function () {
+                // Get the selected text
+                const selectedText = window.getSelection().toString().trim();
+                console.log('Selected text:', selectedText);
+                if (!selectedText) {
+                    alert('Please select some text first.');
+                    return;
                 }
-                return response.json();
-            })
-            .then(data => {
-                // Hide loading indicator
-                loading.style.display = 'none';
 
-                if (data.success) {
-                    // Show success message
-                    alert(data.message);
+                // Show loading indicator
+                loadingSelection.style.display = 'inline-block';
 
-                    // Update related places section
-                    updateRelatedPlaces(data.related_places);
-                } else {
-                    alert('Error saving place: ' + (data.error || 'Unknown error'));
-                }
-            })
-            .catch(error => {
-                // Hide loading indicator
-                loading.style.display = 'none';
-
-                console.error('Error:', error);
-                alert('Error saving place: ' + error.message);
-            });
-        });
-
-        // Handle Get GEO button click
-        getGeoBtn.addEventListener('click', function() {
-            if (!aiResponseData) {
-                alert('No AI response data available. Please generate AI response first.');
-                return;
-            }
-
-            // Show loading indicator
-            loading.style.display = 'inline-block';
-
-            // Extract address components from AI response data
-            const street = aiResponseData.street || '';
-            const zipCode = aiResponseData.zip_code || '';
-            const city = aiResponseData.city || '';
-            const placeName = aiResponseData.name || '';
-            const countryCode = aiResponseData.country_code || 'us';
-
-            const placeId = this.getAttribute('data-place-id');
-
-            // Call the geocode_place endpoint
-            fetch(`/admin/scraping/scrapedplace/geocode/${placeId}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({
-                    street: street,
-                    zip_code: zipCode,
-                    city: city,
-                    place_name: placeName,
-                    country_code: countryCode
+                // Make API call
+                fetch(`/admin/scraping/scrapedplace/ask_ai_from_selection/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        selected_text: selectedText
+                    })
                 })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Hide loading indicator
-                loading.style.display = 'none';
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Hide loading indicator
+                        loadingSelection.style.display = 'none';
 
-                if (data.success) {
-                    // Update the AI response data with the new lat/lon
-                    aiResponseData.lat = data.lat;
-                    aiResponseData.lon = data.lon;
+                        // Update UI with response
+                        updateUIWithAIResponse(data);
+                    })
+                    .catch(error => {
+                        // Hide loading indicator
+                        loadingSelection.style.display = 'none';
 
-                    // Update the UI
-                    document.getElementById('ai-location').textContent = `${data.lat}, ${data.lon}`;
-
-                    // Show success message
-                    alert('Geocoding successful! Location updated.');
-                } else {
-                    alert('Error geocoding address: ' + (data.error || 'Unknown error'));
-                }
-            })
-            .catch(error => {
-                // Hide loading indicator
-                loading.style.display = 'none';
-
-                console.error('Error:', error);
-                alert('Error geocoding address: ' + error.message);
+                        console.error('Error:', error);
+                        alert('Error fetching AI response from selection: ' + error.message);
+                    });
             });
-        });
 
-        // Function to update related places section
-        function updateRelatedPlaces(places) {
-            // Clear existing content
-            relatedPlacesList.innerHTML = '';
+            // Handle Save as place button click
+            savePlaceBtn.addEventListener('click', function () {
+                if (!aiResponseData) {
+                    alert('No AI response data available. Please generate AI response first.');
+                    return;
+                }
 
-            if (places && places.length > 0) {
-                // Add each place to the list
-                places.forEach(place => {
-                    const placeItem = document.createElement('div');
-                    placeItem.className = 'place-item';
+                const placeId = this.getAttribute('data-place-id');
 
-                    const nameDiv = document.createElement('div');
-                    nameDiv.innerHTML = `<strong>Name:</strong> <a href="/admin/place/place/${place.id}/change/">${place.name}</a>`;
-                    placeItem.appendChild(nameDiv);
+                // Show loading indicator
+                loading.style.display = 'inline-block';
 
-                    const typesDiv = document.createElement('div');
-                    typesDiv.innerHTML = `<strong>Types:</strong> ${Array.isArray(place.type) ? place.type.join(', ') : ''}`;
-                    placeItem.appendChild(typesDiv);
+                // Make API call to save the place
+                fetch(`/admin/scraping/scrapedplace/save_as_place/${placeId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify(aiResponseData)
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Hide loading indicator
+                        loading.style.display = 'none';
 
-                    const cityDiv = document.createElement('div');
-                    cityDiv.innerHTML = `<strong>City:</strong> ${place.city || ''}`;
-                    placeItem.appendChild(cityDiv);
+                        if (data.success) {
+                            // Show success message
+                            alert(data.message);
 
-                    relatedPlacesList.appendChild(placeItem);
-                });
-            } else {
-                // Show no places message
-                const noPlaces = document.createElement('p');
-                noPlaces.innerHTML = '<em>No related places found</em>';
-                relatedPlacesList.appendChild(noPlaces);
+                            // Update related places section
+                            updateRelatedPlaces(data.related_places);
+                        } else {
+                            alert('Error saving place: ' + (data.error || 'Unknown error'));
+                        }
+                    })
+                    .catch(error => {
+                        // Hide loading indicator
+                        loading.style.display = 'none';
+
+                        console.error('Error:', error);
+                        alert('Error saving place: ' + error.message);
+                    });
+            });
+
+            // Handle Get GEO button click
+            getGeoBtn.addEventListener('click', function () {
+                if (!aiResponseData) {
+                    alert('No AI response data available. Please generate AI response first.');
+                    return;
+                }
+
+                // Show loading indicator
+                loading.style.display = 'inline-block';
+
+                // Extract address components from AI response data
+                const street = aiResponseData.street || '';
+                const zipCode = aiResponseData.zip_code || '';
+                const city = aiResponseData.city || '';
+                const placeName = aiResponseData.name || '';
+                const countryCode = aiResponseData.country_code || 'us';
+
+                const placeId = this.getAttribute('data-place-id');
+
+                // Call the geocode_place endpoint
+                fetch(`/admin/scraping/scrapedplace/geocode/${placeId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        street: street,
+                        zip_code: zipCode,
+                        city: city,
+                        place_name: placeName,
+                        country_code: countryCode
+                    })
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Hide loading indicator
+                        loading.style.display = 'none';
+
+                        if (data.success) {
+                            // Update the AI response data with the new lat/lon
+                            aiResponseData.lat = data.lat;
+                            aiResponseData.lon = data.lon;
+
+                            // Update the UI
+                            document.getElementById('ai-location').textContent = `${data.lat}, ${data.lon}`;
+
+                            // Show success message
+                            alert('Geocoding successful! Location updated.');
+                        } else {
+                            alert('Error geocoding address: ' + (data.error || 'Unknown error'));
+                        }
+                    })
+                    .catch(error => {
+                        // Hide loading indicator
+                        loading.style.display = 'none';
+
+                        console.error('Error:', error);
+                        alert('Error geocoding address: ' + error.message);
+                    });
+            });
+
+            // Function to update related places section
+            function updateRelatedPlaces(places) {
+                // Clear existing content
+                relatedPlacesList.innerHTML = '';
+
+                if (places && places.length > 0) {
+                    // Add each place to the list
+                    places.forEach(place => {
+                        const placeItem = document.createElement('div');
+                        placeItem.className = 'place-item';
+
+                        const nameDiv = document.createElement('div');
+                        nameDiv.innerHTML = `<strong>Name:</strong> <a href="/admin/place/place/${place.id}/change/">${place.name}</a>`;
+                        placeItem.appendChild(nameDiv);
+
+                        const typesDiv = document.createElement('div');
+                        typesDiv.innerHTML = `<strong>Types:</strong> ${Array.isArray(place.type) ? place.type.join(', ') : ''}`;
+                        placeItem.appendChild(typesDiv);
+
+                        const cityDiv = document.createElement('div');
+                        cityDiv.innerHTML = `<strong>City:</strong> ${place.city || ''}`;
+                        placeItem.appendChild(cityDiv);
+
+                        relatedPlacesList.appendChild(placeItem);
+                    });
+                } else {
+                    // Show no places message
+                    const noPlaces = document.createElement('p');
+                    noPlaces.innerHTML = '<em>No related places found</em>';
+                    relatedPlacesList.appendChild(noPlaces);
+                }
+
+                // Show the related places section
+                relatedPlaces.style.display = 'block';
             }
 
-            // Show the related places section
-            relatedPlaces.style.display = 'block';
-        }
-
-        // Function to get CSRF token from cookies
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
+            // Function to get CSRF token from cookies
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
                     }
                 }
+                return cookieValue;
             }
-            return cookieValue;
-        }
+
     });
 </script>
 {% endblock %}

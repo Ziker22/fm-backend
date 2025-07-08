@@ -13,6 +13,9 @@ from ai.prompts import get_place_review_prompt
 from common.geocoding import geocode_address
 from .models import ScrapedPlace, ScrapedPost
 from place.models import Place
+import logging
+
+logger = logging.getLogger(__name__)
 
 @admin.register(ScrapedPost)
 class ScrapedPostAdmin(admin.ModelAdmin):
@@ -49,6 +52,7 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
             path('review/<int:place_id>/', self.admin_site.admin_view(self.review_view), name='scraping_scrapedplace_review_specific'),
             path('mark_processed/<int:place_id>/', self.admin_site.admin_view(self.mark_processed), name='scraping_scrapedplace_mark_processed'),
             path('ask_ai/<int:place_id>/', self.admin_site.admin_view(self.ask_ai), name='scraping_scrapedplace_ask_ai'),
+            path('ask_ai_from_selection/', self.admin_site.admin_view(self.ask_ai_from_selection), name='scraping_scrapedplace_ask_ai_from_selection'),
             path('save_as_place/<int:place_id>/', self.admin_site.admin_view(self.save_as_place), name='scraping_scrapedplace_save_as_place'),
             path('geocode/<int:place_id>/', self.admin_site.admin_view(self.geocode_place), name='scraping_scrapedplace_geocode'),
         ]
@@ -108,6 +112,39 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
 
             # Get response from OpenAI
             response = client.get_websearch_response(prompt,True)
+
+            # Parse the response as JSON
+            if isinstance(response, str):
+                response_data = json.loads(response)
+            else:
+                response_data = response
+
+            return JsonResponse(response_data)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    def ask_ai_from_selection(self, request):
+
+        try:
+            # Get the selected text from the request
+            data = json.loads(request.body)
+            selected_text = data.get('selected_text', '')
+
+            if not selected_text:
+                return JsonResponse({"error": "No text selected"}, status=400)
+
+            # Create OpenAI client
+            client = OpenAIClient(model="gpt-4.1")
+
+            logger.info(f"Getting AI response from selection {selected_text} ...")
+            prompt = get_place_review_prompt(
+                name=selected_text,
+                city="",
+                types=[]
+            )
+
+            # Get response from OpenAI
+            response = client.get_websearch_response(prompt, True)
 
             # Parse the response as JSON
             if isinstance(response, str):

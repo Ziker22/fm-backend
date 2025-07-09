@@ -48,4 +48,5 @@ class Place(CreatedUpdatedModel):
     season = models.CharField(max_length=255, choices=PlaceSeasonType.choices, null=True, blank=True)
     is_admission_free = models.BooleanField(default=False,null=True)
     is_visible = models.BooleanField(default=True,db_index=True)
+    car_needed = models.BooleanField(default=True, null=True)
 

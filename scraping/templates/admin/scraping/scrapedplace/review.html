@@ -231,6 +231,10 @@
                     <div class="ai-field-label">Stroller Friendly:</div>
                     <div id="ai-stroller" class="ai-field-value"></div>
                 </div>
+                  <div class="ai-field">
+                    <div class="ai-field-label">Car needed:</div>
+                    <div id="ai-car-needed" class="ai-field-value"></div>
+                </div>
 
                 <button id="save-place-btn" class="save-place-btn" data-place-id="{{ place.id }}">Save as place</button>
                 <button id="get-geo-btn" class="save-place-btn" data-place-id="{{ place.id }}">Get GEO</button>
@@ -380,6 +384,13 @@
                 document.getElementById('ai-stroller').textContent = data.stroller_friendly ? 'Yes' : 'No';
             } else {
                 document.getElementById('ai-stroller').textContent = 'Unknown';
+            }
+
+            // Car needed
+            if (data.car_needed !== undefined) {
+                document.getElementById('ai-car-needed').textContent = data.car_needed ? 'Yes' : 'No';
+            } else {
+                document.getElementById('ai-car-needed').textContent = 'Unknown';
             }
 
             // Show the AI response section

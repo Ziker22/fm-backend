@@ -287,7 +287,8 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
                 street=data.get('street', ''),
                 zip_code=data.get('zip_code', ''),
                 season=season,
-                is_admission_free=data.get('is_admission_free', False)
+                is_admission_free=data.get('is_admission_free', False),
+                car_needed = data.get('is_admission_free', False)
             )
             place.save()
 

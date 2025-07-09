@@ -44,6 +44,7 @@ def get_place_review_prompt(name: str, city: str, types: list[str] = []) -> str:
         - is_admission_free: true / false / null if uncertain
         - season: One of "summer", "winter", or "all". Default to "all" unless clearly seasonal.
         - stroller_friendly : true / false / null if uncertain
+        - car_needed : true / false / null if uncertain
     Allowed types:
     - "playground"
     - "indoor_playground"

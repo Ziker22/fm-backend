@@ -186,7 +186,7 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
 
             # Get response from OpenAI
             response = client.get_websearch_response(prompt, True)
-
+            
             # Parse the response as JSON
             if isinstance(response, str):
                 response_data = json.loads(response)

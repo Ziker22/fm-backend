@@ -53,6 +53,7 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
             path('mark_processed/<int:place_id>/', self.admin_site.admin_view(self.mark_processed), name='scraping_scrapedplace_mark_processed'),
             path('ask_ai/<int:place_id>/', self.admin_site.admin_view(self.ask_ai), name='scraping_scrapedplace_ask_ai'),
             path('ask_ai_from_selection/', self.admin_site.admin_view(self.ask_ai_from_selection), name='scraping_scrapedplace_ask_ai_from_selection'),
+            path('ask_ai_from_input/', self.admin_site.admin_view(self.ask_ai_from_input), name='scraping_scrapedplace_ask_ai_from_input'),
             path('save_as_place/<int:place_id>/', self.admin_site.admin_view(self.save_as_place), name='scraping_scrapedplace_save_as_place'),
             path('geocode/<int:place_id>/', self.admin_site.admin_view(self.geocode_place), name='scraping_scrapedplace_geocode'),
         ]
@@ -186,7 +187,7 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
 
             # Get response from OpenAI
             response = client.get_websearch_response(prompt, True)
-            
+
             # Parse the response as JSON
             if isinstance(response, str):
                 response_data = json.loads(response)
@@ -237,6 +238,81 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
             return JsonResponse(response_data)
         except Exception as e:
             logger.error(f"Error getting AI response from selection: {e.__str__()}")
+            return JsonResponse({"error": str(e)}, status=500)
+
+    def ask_ai_from_input(self, request):
+        """Get AI response from user input"""
+        try:
+            # Get the input text from the request
+            data = json.loads(request.body)
+            input_text = data.get('input_text', '')
+
+            if not input_text:
+                return JsonResponse({"error": "No input text provided"}, status=400)
+
+            # Create OpenAI client
+            client = OpenAIClient(model="gpt-4.1")
+
+            logger.info(f"Getting AI response from input {input_text} ...")
+            prompt = get_place_review_prompt(
+                name=input_text,
+                city="",
+                types=[]
+            )
+
+            # Get response from OpenAI
+            response = client.get_websearch_response(prompt, True)
+
+            # Parse the response as JSON
+            if isinstance(response, str):
+                response_data = json.loads(response)
+            else:
+                response_data = response
+
+            # Find nearby and similarly-named places if lat and lon are available
+            nearby_places = []
+            similar_name_places = []
+
+            if 'lat' in response_data and 'lon' in response_data:
+                # Create a point from the lat and lon
+                point = Point(float(response_data['lon']), float(response_data['lat']))
+
+                # Find places within 200 meters
+                from django.contrib.gis.measure import D
+                nearby_places = Place.objects.filter(
+                    location__distance_lte=(point, D(m=200))
+                )
+
+                # Find places with similar names
+                if 'name' in response_data and response_data['name']:
+                    from django.db.models import Q
+                    similar_name_places = Place.objects.filter(
+                        Q(name__icontains=response_data['name']) | 
+                        Q(name__icontains=input_text)
+                    ).exclude(id__in=[p.id for p in nearby_places])
+
+            # Add nearby and similar name places to the response
+            response_data['nearby_places'] = [
+                {
+                    "id": p.id,
+                    "name": p.name,
+                    "type": p.type,
+                    "city": p.city
+                } for p in nearby_places
+            ]
+
+            response_data['similar_name_places'] = [
+                {
+                    "id": p.id,
+                    "name": p.name,
+                    "type": p.type,
+                    "city": p.city
+                } for p in similar_name_places
+            ]
+
+            return JsonResponse(response_data)
+        except Exception as e:
+            logger.error(f"Error getting AI response from input: {e.__str__()}")
             return JsonResponse({"error": str(e)}, status=500)
 
     def save_as_place(self, request, place_id):

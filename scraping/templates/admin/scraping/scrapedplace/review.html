@@ -294,6 +294,7 @@
     <div class="actions-container">
         <button id="ask-ai-btn" class="button action-btn" data-place-id="{{ place.id }}">AskAI <span id="loading" class="loading" style="display: none;">Processing...</span></button>
         <button id="ask-ai-selection-btn" class="button action-btn" data-place-id="{{ place.id }}">ASK AI from selection <span id="loading-selection" class="loading" style="display: none;">Processing...</span></button>
+        <button id="ask-ai-input-btn" class="button action-btn" data-place-id="{{ place.id }}">Ask AI from input <span id="loading-input" class="loading" style="display: none;">Processing...</span></button>
         <a href="{% url 'admin:scraping_scrapedplace_changelist' %}" class="button action-btn">Cancel</a>
         <a href="{% url 'admin:scraping_scrapedplace_mark_processed' place.id %}" class="button default action-btn">Mark as Processed</a>
     </div>
@@ -303,6 +304,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const askAiBtn = document.getElementById('ask-ai-btn');
         const askAiSelectionBtn = document.getElementById('ask-ai-selection-btn');
+        const askAiInputBtn = document.getElementById('ask-ai-input-btn');
         const savePlaceBtn = document.getElementById('save-place-btn');
         const getGeoBtn = document.getElementById('get-geo-btn');
         const aiResponse = document.getElementById('ai-response');
@@ -310,6 +312,7 @@
         const relatedPlacesList = document.getElementById('related-places-list');
         const loading = document.getElementById('loading');
         const loadingSelection = document.getElementById('loading-selection');
+        const loadingInput = document.getElementById('loading-input');
 
         // Store the AI response data globally
         let aiResponseData = null;
@@ -475,6 +478,54 @@
 
                         console.error('Error:', error);
                         alert('Error fetching AI response from selection: ' + error.message);
+                    });
+            });
+
+            // Handle Ask AI from input button click
+            askAiInputBtn.addEventListener('click', function () {
+                // Show prompt to get user input
+                const inputText = window.prompt('Enter text to analyze:');
+                console.log('Input text:', inputText);
+                if (!inputText) {
+                    return; // User cancelled or entered empty text
+                }
+
+                // Show loading indicator
+                loadingInput.style.display = 'inline-block';
+
+                // Make API call
+                fetch(`/admin/scraping/scrapedplace/ask_ai_from_input/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        input_text: inputText
+                    })
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Hide loading indicator
+                        loadingInput.style.display = 'none';
+
+                        // Update UI with response
+                        updateUIWithAIResponse(data);
+
+                        // Update related places with nearby and similar name places
+                        updateRelatedPlaces([], data.nearby_places || [], data.similar_name_places || []);
+                    })
+                    .catch(error => {
+                        // Hide loading indicator
+                        loadingInput.style.display = 'none';
+
+                        console.error('Error:', error);
+                        alert('Error fetching AI response from input: ' + error.message);
                     });
             });
 

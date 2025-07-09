@@ -19,23 +19,18 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-@admin.register(ScrapedPost)
 class ScrapedPostAdmin(admin.ModelAdmin):
-    list_display = ('title', 'third_party_type', 'probability')
+    list_display = ('title', 'third_party_type', 'probability','is_processed')
     search_fields = ('title', 'content')
-
-class ScrapedPlaceAdmin(admin.ModelAdmin):
-    list_display = ('name', 'processed')
-    ordering = ('name',)
-    list_filter = ('processed',)
-    search_fields = ('name',)
+    list_filter = ('is_processed',)
+    ordering = ('title',)
 
     def response_change(self, request, obj):
         """Add a review button to the response"""
         response = super().response_change(request, obj)
         if '_review' in request.POST:
             return HttpResponseRedirect(
-                reverse('admin:scraping_scrapedplace_review_specific', args=[obj.pk])
+                reverse('admin:scraping_scrapedpost_review_specific', args=[obj.pk])
             )
         return response
 
@@ -43,21 +38,20 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
         extra_context = extra_context or {}
         extra_context['review_button_html'] = format_html(
             '<a href="{}" class="button">Review Places</a>',
-            reverse("admin:scraping_scrapedplace_review")
+            reverse("admin:scraping_scrapedpost_review")
         )
         return super().changelist_view(request, extra_context=extra_context)
 
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
-            path('review/', self.admin_site.admin_view(self.review_view), name='scraping_scrapedplace_review'),
-            path('review/<int:place_id>/', self.admin_site.admin_view(self.review_view), name='scraping_scrapedplace_review_specific'),
-            path('mark_processed/<int:place_id>/', self.admin_site.admin_view(self.mark_processed), name='scraping_scrapedplace_mark_processed'),
-            path('ask_ai/<int:place_id>/', self.admin_site.admin_view(self.ask_ai), name='scraping_scrapedplace_ask_ai'),
-            path('ask_ai_from_selection/', self.admin_site.admin_view(self.ask_ai_from_selection), name='scraping_scrapedplace_ask_ai_from_selection'),
-            path('ask_ai_from_input/', self.admin_site.admin_view(self.ask_ai_from_input), name='scraping_scrapedplace_ask_ai_from_input'),
-            path('save_as_place/<int:place_id>/', self.admin_site.admin_view(self.save_as_place), name='scraping_scrapedplace_save_as_place'),
-            path('geocode/<int:place_id>/', self.admin_site.admin_view(self.geocode_place), name='scraping_scrapedplace_geocode'),
+            path('review/', self.admin_site.admin_view(self.review_view), name='scraping_scrapedpost_review'),
+            path('review/<int:place_id>/', self.admin_site.admin_view(self.review_view), name='scraping_scrapedpost_review_specific'),
+            path('mark_processed/<int:post_id>/', self.admin_site.admin_view(self.mark_processed), name='scraping_scrapedpost_mark_processed'),
+            path('ask_ai_from_selection/', self.admin_site.admin_view(self.ask_ai_from_selection), name='scraping_scrapedpost_ask_ai_from_selection'),
+            path('ask_ai_from_input/', self.admin_site.admin_view(self.ask_ai_from_input), name='scraping_scrapedpost_ask_ai_from_input'),
+            path('save_as_place/<int:post_id>/', self.admin_site.admin_view(self.save_as_place), name='scraping_scrapedpost_save_as_place'),
+            path('geocode/<int:place_id>/', self.admin_site.admin_view(self.geocode_place), name='scraping_scrapedpost_geocode'),
         ]
         return custom_urls + urls
 
@@ -65,108 +59,38 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
         """View to review ScrapedPlace entries one by one"""
         if place_id:
             # Get the specific ScrapedPlace
-            place = get_object_or_404(ScrapedPlace, id=place_id)
+            post = get_object_or_404(ScrapedPost, id=place_id)
         else:
             # Get the first unprocessed ScrapedPlace
-            place = ScrapedPlace.objects.filter(processed=False).order_by("name").first()
-            if not place:
+            post = ScrapedPost.objects.filter(is_processed=False).order_by("title").first()
+            if not post:
                 self.message_user(request, "No unprocessed places found.")
-                return HttpResponseRedirect(reverse('admin:scraping_scrapedplace_changelist'))
+                return HttpResponseRedirect(reverse('admin:scraping_scrapedpost_changelist'))
 
         # Get related places
-        related_places = Place.objects.filter(scraped_id=place)
+        related_places = Place.objects.filter(scraped_id=post)
 
         context = {
-            'place': place,
-            'post': place.post,
+            'post': post,
             'related_places': related_places,
             'opts': self.model._meta,
             'title': 'Review Scraped Place',
             'app_label': self.model._meta.app_label,
-            'original': place,
-            'has_view_permission': self.has_view_permission(request, place),
+            'original': post,
+            'has_view_permission': self.has_view_permission(request, post),
             'place_types': Place.PlaceType.choices,
         }
 
-        return TemplateResponse(request, 'admin/scraping/scrapedplace/review.html', context)
+        return TemplateResponse(request, 'admin/scraping/scrapedpost/review.html', context)
 
-    def mark_processed(self, request, place_id):
+    def mark_processed(self, request, post_id):
         """Mark a ScrapedPlace as processed and redirect to the next one"""
-        place = get_object_or_404(ScrapedPlace, id=place_id)
-        place.processed = True
-        place.save()
+        post = get_object_or_404(ScrapedPost, id=post_id)
+        post.is_processed = True
+        post.save()
 
-        self.message_user(request, f"Place '{place.name}' marked as processed.")
-        return HttpResponseRedirect(reverse('admin:scraping_scrapedplace_review'))
-
-    def ask_ai(self, request, place_id):
-        """Generate AI response for a ScrapedPlace"""
-        place = get_object_or_404(ScrapedPlace, id=place_id)
-
-        try:
-            # Create OpenAI client
-            client = OpenAIClient(model="gpt-4.1")
-
-            # Generate prompt using place data
-            prompt = get_place_review_prompt(
-                name=place.name,
-                city=place.city or "",
-                types=place.types
-            )
-
-            # Get response from OpenAI
-            response = client.get_websearch_response(prompt,True)
-
-            # Parse the response as JSON
-            if isinstance(response, str):
-                response_data = json.loads(response)
-            else:
-                response_data = response
-
-            # Find nearby and similarly-named places if lat and lon are available
-            nearby_places = []
-            similar_name_places = []
-
-            if 'lat' in response_data and 'lon' in response_data:
-                # Create a point from the lat and lon
-                point = Point(float(response_data['lon']), float(response_data['lat']))
-
-                # Find places within 200 meters
-                from django.contrib.gis.measure import D
-                nearby_places = Place.objects.filter(
-                    location__distance_lte=(point, D(m=200))
-                )
-
-                # Find places with similar names
-                if 'name' in response_data and response_data['name']:
-                    from django.db.models import Q
-                    similar_name_places = Place.objects.filter(
-                        Q(name__icontains=response_data['name']) | 
-                        Q(name__icontains=place.name)
-                    ).exclude(id__in=[p.id for p in nearby_places])
-
-            # Add nearby and similar name places to the response
-            response_data['nearby_places'] = [
-                {
-                    "id": p.id,
-                    "name": p.name,
-                    "type": p.type,
-                    "city": p.city
-                } for p in nearby_places
-            ]
-
-            response_data['similar_name_places'] = [
-                {
-                    "id": p.id,
-                    "name": p.name,
-                    "type": p.type,
-                    "city": p.city
-                } for p in similar_name_places
-            ]
-
-            return JsonResponse(response_data)
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
+        self.message_user(request, f"Post '{post.title}' marked as processed.")
+        return HttpResponseRedirect(reverse('admin:scraping_scrapedpost_review'))
 
     def ask_ai_from_selection(self, request):
 
@@ -215,7 +139,7 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
                 if 'name' in response_data and response_data['name']:
                     from django.db.models import Q
                     similar_name_places = Place.objects.filter(
-                        Q(name__icontains=response_data['name']) | 
+                        Q(name__icontains=response_data['name']) |
                         Q(name__icontains=selected_text)
                     ).exclude(id__in=[p.id for p in nearby_places])
 
@@ -296,7 +220,7 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
                 if 'name' in response_data and response_data['name']:
                     from django.db.models import Q
                     similar_name_places = Place.objects.filter(
-                        Q(name__icontains=response_data['name']) | 
+                        Q(name__icontains=response_data['name']) |
                         Q(name__icontains=input_text)
                     ).exclude(id__in=[p.id for p in nearby_places])
 
@@ -324,12 +248,12 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
             logger.error(f"Error getting AI response from input: {e.__str__()}")
             return JsonResponse({"error": str(e)}, status=500)
 
-    def save_as_place(self, request, place_id):
+    def save_as_place(self, request, post_id):
         """Save AI response as a Place"""
         if request.method != 'POST':
             return JsonResponse({"error": "Only POST method is allowed"}, status=405)
 
-        scraped_place = get_object_or_404(ScrapedPlace, id=place_id)
+        scraped_post = get_object_or_404(ScrapedPost, id=post_id)
 
         try:
             # Parse the JSON data from the request
@@ -360,7 +284,7 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
             # Create and save the Place object
             place = Place(
                 name=data.get('name', ''),
-                scraped_id=scraped_place,
+                scraped_id=scraped_post,
                 type=types,
                 description=data.get('description', ''),
                 location=location,
@@ -378,7 +302,7 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
             place.save()
 
             # Get all Places related to this ScrapedPlace
-            related_places = Place.objects.filter(scraped_id=scraped_place)
+            related_places = Place.objects.filter(scraped_id=scraped_post)
 
             # Prepare the response data
             response_data = {
@@ -452,4 +376,15 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
 
+class ScrapedPlaceAdmin(admin.ModelAdmin):
+    list_display = ('name', 'processed')
+    ordering = ('name',)
+    list_filter = ('processed',)
+    search_fields = ('name',)
+
+
+
+
+
 admin.site.register(ScrapedPlace, ScrapedPlaceAdmin)
+admin.site.register(ScrapedPost, ScrapedPostAdmin)

@@ -12,6 +12,12 @@ class ScrapedPost(CreatedUpdatedModel,models.Model):
     comments = ArrayField(models.TextField(default=list))
     probability = models.FloatField()
     original_created_at = models.DateTimeField()
+    is_processed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.title} ({self.third_party_type})"
+
+
 
 class ScrapedPlace(models.Model,):
     name = models.CharField(max_length=255)
@@ -19,3 +25,6 @@ class ScrapedPlace(models.Model,):
     types = ArrayField(models.CharField(max_length=255), default=list)
     post = models.ForeignKey(ScrapedPost, on_delete=models.CASCADE, related_name='places', null=True)
     processed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.name} ({self.city})"

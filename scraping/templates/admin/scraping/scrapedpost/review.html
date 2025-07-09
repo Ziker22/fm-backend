@@ -1,7 +1,7 @@
 {% extends "admin/base_site.html" %}
 {% load i18n admin_urls %}
 
-{% block title %}Review Scraped Place | {{ site_title|default:_('Django site admin') }}{% endblock %}
+{% block title %}Review Scraped Post | {{ site_title|default:_('Django site admin') }}{% endblock %}
 
 {% block extrastyle %}
 <style>
@@ -149,7 +149,7 @@
 <div class="breadcrumbs">
     <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
     &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
-    &rsaquo; <a href="{% url 'admin:scraping_scrapedplace_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+    &rsaquo; <a href="{% url 'admin:scraping_scrapedpost_changelist' %}">Scraped Posts</a>
     &rsaquo; {% trans 'Review' %}
 </div>
 {% endblock %}
@@ -158,31 +158,33 @@
 <div class="review-container">
 
     <div class="content-container">
-        <!-- Left panel: ScrapedPlace details -->
+        <!-- Left panel: ScrapedPost details -->
         <div class="left-panel">
-            <h2>Place Details</h2>
+            <h2>Post Details</h2>
 
-            <div class="field-label">Name:</div>
-            <div class="field-value">{{ place.name }}</div>
+            <div class="field-label">Title:</div>
+            <div class="field-value">{{ post.title }}</div>
 
-            <div class="field-label">City:</div>
-            <div class="field-value">{{ place.city }}</div>
+            <div class="field-label">Third Party Type:</div>
+            <div class="field-value">{{ post.third_party_type }}</div>
 
-            <div class="field-label">Types:</div>
+            <div class="field-label">Probability:</div>
+            <div class="field-value">{{ post.probability }}</div>
+
+            <div class="field-label">Created At:</div>
+            <div class="field-value">{{ post.original_created_at }}</div>
+
+            <div class="field-label">Places:</div>
             <div class="field-value">
-                {% if place.types %}
-                    <ul>
-                    {% for type in place.types %}
-                        <li>{{ type }}</li>
-                    {% endfor %}
-                    </ul>
+                {% if post.places.all %}
+                    {{ post.places.all|join:", " }}
                 {% else %}
-                    <em>No types specified</em>
+                    <em>No places associated</em>
                 {% endif %}
             </div>
 
             <div class="field-label">Processed:</div>
-            <div class="field-value">{{ place.processed|yesno:"Yes,No" }}</div>
+            <div class="field-value">{{ post.is_processed|yesno:"Yes,No" }}</div>
 
             <!-- AI Response Section -->
             <div id="ai-response" class="ai-response">
@@ -253,8 +255,8 @@
                     <div id="ai-car-needed" class="ai-field-value"></div>
                 </div>
 
-                <button id="save-place-btn" class="save-place-btn" data-place-id="{{ place.id }}">Save as place</button>
-                <button id="get-geo-btn" class="save-place-btn" data-place-id="{{ place.id }}">Get GEO</button>
+                <button id="save-place-btn" class="save-place-btn" data-post-id="{{ post.id }}">Save as place</button>
+                <button id="get-geo-btn" class="save-place-btn" data-post-id="{{ post.id }}">Get GEO</button>
             </div>
 
             <!-- Related Places Section -->
@@ -309,17 +311,15 @@
 
     <!-- Actions container -->
     <div class="actions-container">
-        <button id="ask-ai-btn" class="button action-btn" data-place-id="{{ place.id }}">AskAI <span id="loading" class="loading" style="display: none;">Processing...</span></button>
-        <button id="ask-ai-selection-btn" class="button action-btn" data-place-id="{{ place.id }}">ASK AI from selection <span id="loading-selection" class="loading" style="display: none;">Processing...</span></button>
-        <button id="ask-ai-input-btn" class="button action-btn" data-place-id="{{ place.id }}">Ask AI from input <span id="loading-input" class="loading" style="display: none;">Processing...</span></button>
-        <a href="{% url 'admin:scraping_scrapedplace_changelist' %}" class="button action-btn">Cancel</a>
-        <a href="{% url 'admin:scraping_scrapedplace_mark_processed' place.id %}" class="button default action-btn">Mark as Processed</a>
+        <button id="ask-ai-selection-btn" class="button action-btn" data-post-id="{{ post.id }}">ASK AI from selection <span id="loading-selection" class="loading" style="display: none;">Processing...</span></button>
+        <button id="ask-ai-input-btn" class="button action-btn" data-post-id="{{ post.id }}">Ask AI from input <span id="loading-input" class="loading" style="display: none;">Processing...</span></button>
+        <a href="{% url 'admin:scraping_scrapedpost_changelist' %}" class="button action-btn">Cancel</a>
+        <a href="{% url 'admin:scraping_scrapedpost_mark_processed' post.id %}" class="button default action-btn">Mark as Processed</a>
     </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const askAiBtn = document.getElementById('ask-ai-btn');
         const askAiSelectionBtn = document.getElementById('ask-ai-selection-btn');
         const askAiInputBtn = document.getElementById('ask-ai-input-btn');
         const savePlaceBtn = document.getElementById('save-place-btn');
@@ -459,38 +459,7 @@
             aiResponse.style.display = 'block';
         }
 
-        askAiBtn.addEventListener('click', function () {
-            const placeId = this.getAttribute('data-place-id');
 
-            // Show loading indicator
-            loading.style.display = 'inline-block';
-
-            // Make API call
-            fetch(`/admin/scraping/scrapedplace/ask_ai/${placeId}/`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // Hide loading indicator
-                    loading.style.display = 'none';
-
-                    // Update UI with response
-                    updateUIWithAIResponse(data);
-
-                    // Update related places with nearby and similar name places
-                    updateRelatedPlaces([], data.nearby_places || [], data.similar_name_places || []);
-                })
-                .catch(error => {
-                    // Hide loading indicator
-                    loading.style.display = 'none';
-
-                    console.error('Error:', error);
-                    alert('Error fetching AI response: ' + error.message);
-                });
-        })
             // Handle ASK AI from selection button click
             askAiSelectionBtn.addEventListener('click', function () {
                 // Get the selected text
@@ -505,7 +474,7 @@
                 loadingSelection.style.display = 'inline-block';
 
                 // Make API call
-                fetch(`/admin/scraping/scrapedplace/ask_ai_from_selection/`, {
+                fetch(`/admin/scraping/scrapedpost/ask_ai_from_selection/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -553,7 +522,7 @@
                 loadingInput.style.display = 'inline-block';
 
                 // Make API call
-                fetch(`/admin/scraping/scrapedplace/ask_ai_from_input/`, {
+                fetch(`/admin/scraping/scrapedpost/ask_ai_from_input/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -595,13 +564,11 @@
                     return;
                 }
 
-                const placeId = this.getAttribute('data-place-id');
+                const postId = this.getAttribute('data-post-id');
 
-                // Show loading indicator
-                loading.style.display = 'inline-block';
 
                 // Make API call to save the place
-                fetch(`/admin/scraping/scrapedplace/save_as_place/${placeId}/`, {
+                fetch(`/admin/scraping/scrapedpost/save_as_place/${postId}/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -611,14 +578,12 @@
                 })
                     .then(response => {
                         if (!response.ok) {
+                            console.log(response)
                             throw new Error('Network response was not ok');
                         }
                         return response.json();
                     })
                     .then(data => {
-                        // Hide loading indicator
-                        loading.style.display = 'none';
-
                         if (data.success) {
                             // Show success message
                             alert(data.message);
@@ -630,9 +595,6 @@
                         }
                     })
                     .catch(error => {
-                        // Hide loading indicator
-                        loading.style.display = 'none';
-
                         console.error('Error:', error);
                         alert('Error saving place: ' + error.message);
                     });
@@ -645,9 +607,6 @@
                     return;
                 }
 
-                // Show loading indicator
-                loading.style.display = 'inline-block';
-
                 // Extract address components from AI response data
                 const street = aiResponseData.street || '';
                 const zipCode = aiResponseData.zip_code || '';
@@ -655,10 +614,10 @@
                 const placeName = aiResponseData.name || '';
                 const countryCode = aiResponseData.country_code || 'us';
 
-                const placeId = this.getAttribute('data-place-id');
+                const placeId = this.getAttribute('data-post-id');
 
                 // Call the geocode_place endpoint
-                fetch(`/admin/scraping/scrapedplace/geocode/${placeId}/`, {
+                fetch(`/admin/scraping/scrapedpost/geocode/${placeId}/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -679,8 +638,6 @@
                         return response.json();
                     })
                     .then(data => {
-                        // Hide loading indicator
-                        loading.style.display = 'none';
 
                         if (data.success) {
                             // Update the AI response data with the new lat/lon
@@ -701,9 +658,6 @@
                         }
                     })
                     .catch(error => {
-                        // Hide loading indicator
-                        loading.style.display = 'none';
-
                         console.error('Error:', error);
                         alert('Error geocoding address: ' + error.message);
                     });

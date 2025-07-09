@@ -1,3 +1,5 @@
+from json import JSONDecodeError
+
 from django.contrib import admin
 from django.urls import path
 from django.shortcuts import render, redirect, get_object_or_404
@@ -83,6 +85,7 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
             'app_label': self.model._meta.app_label,
             'original': place,
             'has_view_permission': self.has_view_permission(request, place),
+            'place_types': Place.PlaceType.choices,
         }
 
         return TemplateResponse(request, 'admin/scraping/scrapedplace/review.html', context)
@@ -236,6 +239,12 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
             ]
 
             return JsonResponse(response_data)
+        except JSONDecodeError:
+            logger.error(f"Error decoding JSON from response : {response}")
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        except KeyError:
+            logger.error("Missing key in JSON from selection")
+            return JsonResponse({"error": "Missing key in JSON"}, status=400)
         except Exception as e:
             logger.error(f"Error getting AI response from selection: {e.__str__()}")
             return JsonResponse({"error": str(e)}, status=500)

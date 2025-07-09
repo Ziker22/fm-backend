@@ -132,6 +132,16 @@
         color: #036;
         text-decoration: underline;
     }
+
+    .selected-types-display {
+        margin-bottom: 8px;
+        padding: 5px 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 0.9em;
+        line-height: 1.5;
+        min-height: 20px;
+    }
 </style>
 {% endblock %}
 
@@ -185,7 +195,14 @@
 
                 <div class="ai-field">
                     <div class="ai-field-label">Types:</div>
-                    <div id="ai-types" class="ai-field-value"></div>
+                    <div id="selected-types-display" class="selected-types-display"></div>
+                    <div class="ai-field-value">
+                        <select id="ai-types" class="ai-field-value" multiple style="width: 100%; min-height: 100px;">
+                            {% for type_value, type_name in place_types %}
+                                <option value="{{ type_value }}">{{ type_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
 
                 <div class="ai-field">
@@ -317,6 +334,34 @@
         // Store the AI response data globally
         let aiResponseData = null;
 
+        // Function to update the selected types display
+        function updateSelectedTypesDisplay() {
+            const typesSelect = document.getElementById('ai-types');
+            const selectedTypesDisplay = document.getElementById('selected-types-display');
+
+            // Get selected options with their display text
+            const selectedTypes = Array.from(typesSelect.selectedOptions).map(option => option.text);
+
+            // Update the display
+            if (selectedTypes.length > 0) {
+                selectedTypesDisplay.textContent = selectedTypes.join(', ');
+            } else {
+                selectedTypesDisplay.textContent = 'No types selected';
+            }
+        }
+
+        // Add event listener to types select box to update aiResponseData when selection changes
+        document.getElementById('ai-types').addEventListener('change', function() {
+            if (aiResponseData) {
+                // Get selected options
+                const selectedTypes = Array.from(this.selectedOptions).map(option => option.value);
+                // Update aiResponseData
+                aiResponseData.types = selectedTypes;
+                // Update the selected types display
+                updateSelectedTypesDisplay();
+            }
+        });
+
         // Function to update UI with AI response data
         function updateUIWithAIResponse(data) {
             // Store the AI response data
@@ -325,12 +370,26 @@
             // Update UI with response
             document.getElementById('ai-name').textContent = data.name || '';
 
-            // Handle types array
+            // Handle types array for select box
+            const typesSelect = document.getElementById('ai-types');
+            // Clear all selections
+            Array.from(typesSelect.options).forEach(option => {
+                option.selected = false;
+            });
+
+            // Set selected options based on AI response
             if (data.types && Array.isArray(data.types)) {
-                document.getElementById('ai-types').textContent = data.types.join(', ');
-            } else {
-                document.getElementById('ai-types').textContent = '';
+                Array.from(typesSelect.options).forEach(option => {
+                    // Check if this option's value is in the types array (case-insensitive)
+                    const typeUpperCase = option.value.toUpperCase();
+                    if (data.types.some(type => type.toUpperCase() === typeUpperCase)) {
+                        option.selected = true;
+                    }
+                });
             }
+
+            // Update the selected types display
+            updateSelectedTypesDisplay();
 
             document.getElementById('ai-description').textContent = data.description || '';
 

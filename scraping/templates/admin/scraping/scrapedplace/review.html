@@ -195,7 +195,11 @@
 
                 <div class="ai-field">
                     <div class="ai-field-label">Location:</div>
-                    <div id="ai-location" class="ai-field-value"></div>
+                    <div class="ai-field-value">
+                        <input type="text" id="ai-location-lat" placeholder="Latitude" style="width: 120px; margin-right: 10px;">
+                        <input type="text" id="ai-location-lon" placeholder="Longitude" style="width: 120px;">
+                    </div>
+                    <a id="google-maps-link" href="#" target="_blank">View on Google Maps</a>
                 </div>
 
                 <div class="ai-field">
@@ -325,9 +329,13 @@
 
             // Format location
             if (data.lat && data.lon) {
-                document.getElementById('ai-location').textContent = `${data.lat}, ${data.lon}`;
+                document.getElementById('ai-location-lat').value = data.lat;
+                document.getElementById('ai-location-lon').value = data.lon;
+                document.getElementById('google-maps-link').href = `https://www.google.com/maps/search/${data.lat},${data.lon}`;
             } else {
-                document.getElementById('ai-location').textContent = '';
+                document.getElementById('ai-location-lat').value = '';
+                document.getElementById('ai-location-lon').value = '';
+                document.getElementById('google-maps-link').href = '#';
             }
 
             // Format address
@@ -558,8 +566,12 @@
                             aiResponseData.lat = data.lat;
                             aiResponseData.lon = data.lon;
 
-                            // Update the UI
-                            document.getElementById('ai-location').textContent = `${data.lat}, ${data.lon}`;
+                            // Update the UI - set input field values
+                            document.getElementById('ai-location-lat').value = data.lat;
+                            document.getElementById('ai-location-lon').value = data.lon;
+
+                            // Update Google Maps link
+                            updateGoogleMapsLink();
 
                             // Show success message
                             alert('Geocoding successful! Location updated.');
@@ -637,6 +649,38 @@
 
                 // Show the related places section
                 relatedPlaces.style.display = 'block';
+            }
+
+            // Add event listeners for location input fields
+            const locationLatInput = document.getElementById('ai-location-lat');
+            const locationLonInput = document.getElementById('ai-location-lon');
+            const googleMapsLink = document.getElementById('google-maps-link');
+
+            // Update aiResponseData and Google Maps link when lat/lon inputs change
+            locationLatInput.addEventListener('input', function() {
+                if (aiResponseData) {
+                    aiResponseData.lat = this.value;
+                    updateGoogleMapsLink();
+                }
+            });
+
+            locationLonInput.addEventListener('input', function() {
+                if (aiResponseData) {
+                    aiResponseData.lon = this.value;
+                    updateGoogleMapsLink();
+                }
+            });
+
+            // Function to update Google Maps link based on current lat/lon values
+            function updateGoogleMapsLink() {
+                const lat = locationLatInput.value.trim();
+                const lon = locationLonInput.value.trim();
+
+                if (lat && lon) {
+                    googleMapsLink.href = `https://www.google.com/maps/search/${lat},${lon}`;
+                } else {
+                    googleMapsLink.href = '#';
+                }
             }
 
             // Function to get CSRF token from cookies

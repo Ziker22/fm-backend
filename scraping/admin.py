@@ -236,6 +236,7 @@ class ScrapedPlaceAdmin(admin.ModelAdmin):
 
             return JsonResponse(response_data)
         except Exception as e:
+            logger.error(f"Error getting AI response from selection: {e.__str__()}")
             return JsonResponse({"error": str(e)}, status=500)
 
     def save_as_place(self, request, place_id):

@@ -8,31 +8,45 @@
     .review-container {
         display: flex;
         flex-direction: column;
-        height: 100%;
+        height: 100vh;
+        position: relative;
     }
 
     .content-container {
         display: flex;
         flex-direction: row;
         flex-grow: 1;
-        margin-bottom: 20px;
+        margin-bottom: 70px; /* Space for the actions container */
+        height: calc(100vh - 150px); /* Adjust for header and footer */
+        padding-top: 10px; /* Add space for breadcrumbs */
     }
 
     .left-panel {
         flex: 1;
         padding: 20px;
         border-right: 1px solid #ccc;
+        overflow-y: auto;
+        height: 100%;
     }
 
     .right-panel {
         flex: 2;
         padding: 20px;
+        overflow-y: auto;
+        height: 100%;
     }
 
     .actions-container {
         padding: 20px;
         border-top: 1px solid #ccc;
         text-align: right;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background : #000;
+        z-index: 100;
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
     }
 
     .field-label {
@@ -102,7 +116,7 @@
     }
 
     .related-places {
-        margin-top: 20px;
+        margin-bottom: 20px;
         padding: 15px;
         border: 1px solid #e9ecef;
         border-radius: 4px;
@@ -146,7 +160,7 @@
 {% endblock %}
 
 {% block breadcrumbs %}
-<div class="breadcrumbs">
+<div class="breadcrumbs" style="margin-bottom: 10px; position: relative; z-index: 50;">
     <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
     &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
     &rsaquo; <a href="{% url 'admin:scraping_scrapedpost_changelist' %}">Scraped Posts</a>
@@ -185,7 +199,24 @@
 
             <div class="field-label">Processed:</div>
             <div class="field-value">{{ post.is_processed|yesno:"Yes,No" }}</div>
+                <!-- Related Places Section -->
+            <div id="related-places" class="related-places" {% if not related_places %}style="display: none;"{% endif %}>
+                <h3>Related Places</h3>
 
+                <div id="related-places-list">
+                    {% if related_places %}
+                        {% for place in related_places %}
+                            <div class="place-item">
+                                <div><strong>Name:</strong> <a href="{% url 'admin:place_place_change' place.id %}">{{ place.name }}</a></div>
+                                <div><strong>Types:</strong> {{ place.type|join:", " }}</div>
+                                <div><strong>City:</strong> {{ place.city }}</div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p><em>No related places found</em></p>
+                    {% endif %}
+                </div>
+            </div>
             <!-- AI Response Section -->
             <div id="ai-response" class="ai-response">
                 <h3>AI Generated Information</h3>
@@ -209,7 +240,7 @@
 
                 <div class="ai-field">
                     <div class="ai-field-label">Description:</div>
-                    <div id="ai-description" class="ai-field-value"></div>
+                    <textarea id="ai-description" class="ai-field-value" style="width: 100%; min-height: 100px;"></textarea>
                 </div>
 
                 <div class="ai-field">
@@ -259,24 +290,7 @@
                 <button id="get-geo-btn" class="save-place-btn" data-post-id="{{ post.id }}">Get GEO</button>
             </div>
 
-            <!-- Related Places Section -->
-            <div id="related-places" class="related-places" {% if not related_places %}style="display: none;"{% endif %}>
-                <h3>Related Places</h3>
 
-                <div id="related-places-list">
-                    {% if related_places %}
-                        {% for place in related_places %}
-                            <div class="place-item">
-                                <div><strong>Name:</strong> <a href="{% url 'admin:place_place_change' place.id %}">{{ place.name }}</a></div>
-                                <div><strong>Types:</strong> {{ place.type|join:", " }}</div>
-                                <div><strong>City:</strong> {{ place.city }}</div>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <p><em>No related places found</em></p>
-                    {% endif %}
-                </div>
-            </div>
         </div>
 
         <!-- Right panel: ScrapedPost details -->
@@ -391,7 +405,7 @@
             // Update the selected types display
             updateSelectedTypesDisplay();
 
-            document.getElementById('ai-description').textContent = data.description || '';
+            document.getElementById('ai-description').value = data.description || '';
 
             // Format location
             if (data.lat && data.lon) {
@@ -743,6 +757,14 @@
                 if (aiResponseData) {
                     aiResponseData.lon = this.value;
                     updateGoogleMapsLink();
+                }
+            });
+
+            // Update aiResponseData when description textarea changes
+            const descriptionTextarea = document.getElementById('ai-description');
+            descriptionTextarea.addEventListener('input', function() {
+                if (aiResponseData) {
+                    aiResponseData.description = this.value;
                 }
             });
 
